@@ -14,6 +14,7 @@ The options I considered for the backend are:
 - Elixir / Phoenix
 - Go / Gin
 - Rust / Actix
+- Zig / Ziggy
 
 ## Decision
 
@@ -34,6 +35,11 @@ my knowledge of the language by using it in a context like this. But, due to the
 previous experience with Rust as a pretty complicated language to get even simple stuff working, I'm afraid that it
 might not be the best fit due to the time constraints of this project.
 
+Zig is a relatively new language that has been gaining traction in the last few years. It is a low-level language with a
+strong focus on performance and safety. Ziggy is a web framework for Zig that is still in its early stages and lacks a
+large community, just as the language itself. It might take a lot of work to develop new features and find help for
+problems I'm facing.
+
 Go and the Gin framework are a great fit for this project. Go is a language I have been wanting to learn for a while,
 with a large community and low-level performance. For the task at hand, I can use the goexiv2 wrapper.
 Within the Go ecosystem, there are multiple options for creating web servers, such as Echo and Go Chi. My choice is Gin,
@@ -43,6 +49,7 @@ options, although it lacks an out-of-the-box ORM which some web frameworks provi
 ## Consequences
 
 **Pros**
+
 - Very fast, single binary, easy to deploy
 - Go wrappers for exiv2
 - Strong standard library for HTTP, JSON etc.
@@ -50,5 +57,6 @@ options, although it lacks an out-of-the-box ORM which some web frameworks provi
 - Great community and ecosystem
 
 **Cons**
+
 - No "batteries included", as in no ORM or templating engine
 - A little more time-consuming due to using a new language
