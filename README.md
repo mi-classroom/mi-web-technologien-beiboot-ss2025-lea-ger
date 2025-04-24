@@ -12,3 +12,26 @@ Hier ein paar ADR Beispiele aus dem letzten Semestern:
 - https://github.com/mi-classroom/mi-web-technologien-beiboot-ss2022-twobiers/tree/main/adr
 
 Halten Sie die Anwendung, gerade in der Anfangsphase möglichst einfach, schlank und leichtgewichtig (KISS).
+
+___
+
+## Running the project
+
+### Backend (using Go)
+1. Install go (ver. 1.24)
+2. Go to "backend" folder
+3. Install dependencies
+   ```bash
+   go mod download
+   ```
+4. Run the server
+   ```bash
+    go run main.go
+    ```
+   
+### Using Docker
+1. Install Docker
+2. Execute the following command in the root directory of the project:
+   ```bash
+   docker-compose up
+   ```
