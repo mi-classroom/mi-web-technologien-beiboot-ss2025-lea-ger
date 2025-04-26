@@ -17,7 +17,7 @@ FROM alpine:latest
 
 WORKDIR /app
 
-RUN apk add --no-cache exiv2
+RUN apk add --no-cache exiftool
 
 COPY --from=builder /app/server .
 RUN chmod +x ./server
