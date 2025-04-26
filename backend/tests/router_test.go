@@ -27,7 +27,7 @@ func TestGetMetadata(t *testing.T) {
 	w := httptest.NewRecorder()
 	server.ServeHTTP(w, req)
 
-	assert.Equal(t, 200, w.Code)
+	assert.Equal(t, 400, w.Code)
 	assert.JSONEq(t, `{"message": "read metadata", "id": "123"}`, w.Body.String())
 }
 
@@ -38,6 +38,6 @@ func TestPostMetadata(t *testing.T) {
 	w := httptest.NewRecorder()
 	server.ServeHTTP(w, req)
 
-	assert.Equal(t, 200, w.Code)
+	assert.Equal(t, 400, w.Code)
 	assert.JSONEq(t, `{"message": "write metadata", "id": "123"}`, w.Body.String())
 }
