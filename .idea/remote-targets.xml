@@ -1,26 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="RemoteTargetsManager">
+    <option name="projectDefaultTargetUuid" value="e5509071-e410-4dd7-80bb-84ae1e75e893" />
     <targets>
-      <target name="backend" type="docker-compose" uuid="6f485ba1-002f-4be5-b848-bc3a837e1af5">
-        <config>
-          <option name="targetPlatform">
-            <TargetPlatform />
-          </option>
-          <option name="configurationFiles">
-            <list>
-              <option value="C:\Users\Leander\GolandProjects\mi-web-technologien-beiboot-ss2025-lea-ger\docker-compose.yml" />
-            </list>
-          </option>
-          <option name="serviceName" value="backend" />
-        </config>
-        <ContributedStateBase type="GoLanguageRuntime">
-          <config>
-            <option name="musl" value="true" />
-          </config>
-        </ContributedStateBase>
-      </target>
-      <target name="&lt;none&gt;:&lt;none&gt;" type="docker" uuid="5233b1ab-227b-4e24-9cbb-cd8a53a24bf2">
+      <target name="Test docker" type="docker" uuid="e5509071-e410-4dd7-80bb-84ae1e75e893">
         <config>
           <option name="targetPlatform">
             <TargetPlatform />
@@ -28,7 +11,7 @@
           <option name="buildImageConfig">
             <BuildImageConfig>
               <option name="builtImageTag" value="&lt;none&gt;:&lt;none&gt;" />
-              <option name="dockerFile" value="backend/Dockerfile" />
+              <option name="dockerFile" value="backend/test.Dockerfile" />
             </BuildImageConfig>
           </option>
         </config>
@@ -43,6 +26,9 @@
                 </option>
               </VolumeState>
             </option>
+            <option name="goPath" value="/go" />
+            <option name="goRoot" value="/usr/local/go/bin/go" />
+            <option name="goVersion" value="go1.24.2 linux/amd64" />
             <option name="musl" value="true" />
             <option name="projectSourcesVolume">
               <VolumeState>
