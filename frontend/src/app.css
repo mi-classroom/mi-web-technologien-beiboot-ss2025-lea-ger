@@ -1,3 +1,75 @@
 @import 'tailwindcss';
 @plugin '@tailwindcss/forms';
 @plugin '@tailwindcss/typography';
+@plugin "daisyui";
+
+
+:root {
+    --iptc-primary: #2ABDBD;
+    --iptc-secondary: #FF4F5B;
+    --iptc-warm-light: #EBE9E0;
+    --iptc-warm-medium: #A4A195;
+    --iptc-warm-dark: #4C4B45;
+    --iptc-dark: #666666;
+    --iptc-darker: #333333;
+    --iptc-darkest: #000000;
+    --iptc-light: #F4F4F4;
+    --iptc-lightest: #FFFFFF;
+    --iptc-darken: #000000CC;
+    --iptc-lighten: #FFFFFFCC;
+
+    --iptc-border-xs: 0.5px;
+    --iptc-border-sm: 1px;
+    --iptc-border-md: 2px;
+
+    --iptc-font: Spline Sans, sans-serif;
+}
+
+
+@plugin "daisyui/theme" {
+    name: "iptc";
+    default: true;
+    prefersdark: false;
+    color-scheme: light;
+
+    --color-base-100: var(--iptc-lightest);
+    --color-base-200: var(--iptc-light);
+    --color-base-300: var(--iptc-warm-light);
+    --color-base-content: var(--iptc-darkest);
+    --color-primary: var(--iptc-primary);
+    --color-primary-content: var(--iptc-lightest);
+    --color-secondary: var(--iptc-secondary);
+    --color-secondary-content: var(--iptc-lightest);
+    --color-accent: var(--iptc-warm-medium);
+    --color-accent-content: var(--iptc-lightest);
+    --color-neutral: var(--iptc-warm-dark);
+    --color-neutral-content: var(--iptc-lightest);
+    --color-info: var(--iptc-dark);
+    --color-info-content: var(--iptc-lightest);
+    --color-success: var(--iptc-primary);
+    --color-success-content: var(--iptc-lightest);
+    --color-warning: var(--iptc-warm-medium);
+    --color-warning-content: var(--iptc-darkest);
+    --color-error: var(--iptc-secondary);
+    --color-error-content: var(--iptc-lightest);
+
+    /* border radius */
+    --radius-selector: 1rem;
+    --radius-field: 0.25rem;
+    --radius-box: 0.5rem;
+
+    /* base sizes */
+    --size-selector: 0.25rem;
+    --size-field: 0.25rem;
+
+    /* border size */
+    --border: 1px;
+
+    /* effects */
+    --depth: 1;
+    --noise: 0;
+}
+
+body {
+    font-family: var(--iptc-font);
+}
