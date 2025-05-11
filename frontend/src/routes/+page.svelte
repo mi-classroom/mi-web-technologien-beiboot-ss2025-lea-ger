@@ -1,7 +1,13 @@
-<script>
+<script lang="ts">
     import UploadBox from '@/components/UploadBox.svelte';
     import FileListItem from '@/components/FileListItem.svelte';
     import MetadataPanel from '@/components/MetadataPanel.svelte';
+
+    type FileItem = {
+        name: string;
+        date: string;
+        thumb: string;
+    };
 
     let files = [
         { name: 'AT_KHM_GG6905_FR001_2008-08_Overall-s.jpg', date: '03.05.2025', thumb: 'img1.jpg' },
@@ -12,7 +18,7 @@
         { name: 'DE_smbGG_564A_FR010_2013_Overall-s.jpg', date: '03.05.2025', thumb: 'img6.jpg' }
     ];
 
-    let selected = files[0];
+    let selected: FileItem | null = null;
 </script>
 
 <div class="min-h-screen p-6 font-sans">
@@ -20,24 +26,25 @@
 
   <div class="flex gap-6">
     <!-- Upload Box -->
-    <div class="w-1/4">
+    <div class="flex-1">
       <UploadBox />
     </div>
 
     <!-- File List -->
-    <div class="w-1/4 space-y-3 overflow-y-auto max-h-[700px]">
+    <div class="flex-1 space-y-3 overflow-y-auto max-h-[700px]">
       {#each files as file (file.name)}
         <FileListItem
             {file}
-            isSelected={file.name === selected.name}
-            on:click={() => (selected = file)}
+            isSelected={file.name === selected?.name}
+            click={() => (selected = file)}
         />
       {/each}
     </div>
 
-    <!-- Metadata Viewer -->
-    <div class="w-1/2">
-      <MetadataPanel {selected} />
-    </div>
+    {#if selected}
+      <div class="flex-2">
+        <MetadataPanel {selected} />
+      </div>
+    {/if}
   </div>
 </div>

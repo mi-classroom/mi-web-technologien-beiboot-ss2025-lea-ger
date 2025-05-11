@@ -1,4 +1,6 @@
 @import 'tailwindcss';
+@import 'material-symbols';
+
 @plugin '@tailwindcss/forms';
 @plugin '@tailwindcss/typography';
 @plugin "daisyui";
@@ -23,6 +25,10 @@
     --iptc-border-md: 2px;
 
     --iptc-font: Spline Sans, sans-serif;
+}
+
+.material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 200, 'GRAD' 0, 'opsz' 25;
 }
 
 

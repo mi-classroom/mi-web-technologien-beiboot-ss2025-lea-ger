@@ -24,4 +24,4 @@ RUN chmod +x ./server
 
 EXPOSE 8080
 
-CMD ["./server"]
+CMD ["./server", "-bind", "0.0.0.0:8080"]
