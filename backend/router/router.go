@@ -69,6 +69,20 @@ func SetupRouter() *gin.Engine {
 			c.JSON(200, gin.H{"success": true})
 		})
 	}
+	r.GET("/assets/:imageId", func(c *gin.Context) {
+		id := c.Param("imageId")
+		file, err := getFileById(id)
+		if err != nil {
+			c.JSON(500, gin.H{"message": "internal server error"})
+			return
+		}
+		if file == "" {
+			c.JSON(404, gin.H{"message": "image not found", "id": id})
+			return
+		}
+		c.File(file)
+	})
+
 	return r
 }
 
