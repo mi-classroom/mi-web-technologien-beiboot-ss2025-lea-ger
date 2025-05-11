@@ -16,13 +16,13 @@ services:
     container_name: postgres
     environment:
       POSTGRES_USER: admin
-      POSTGRES_PASSWORD:
+      POSTGRES_PASSWORD: admin
       POSTGRES_DB: iptc-editor
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
-        
+
 volumes:
   postgres_data:

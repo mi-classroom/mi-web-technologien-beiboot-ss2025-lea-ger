@@ -18,6 +18,6 @@ COPY . .
 
 ENV PATH="/usr/bin:$PATH"
 
-RUN migrate -path ./migrations -database "mysql://admin:@tcp(db:3306)/iptc-editor" up
+RUN migrate -path ./migrations -database "postgres://admin:admin@localhost:5432/iptc-editor?sslmode=disable" up
 
 CMD ["go", "test", "./..."]
