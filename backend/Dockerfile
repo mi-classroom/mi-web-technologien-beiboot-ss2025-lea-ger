@@ -11,6 +11,8 @@ RUN go mod download
 
 COPY . .
 
+RUN migrate -path ./migrations -database "mysql://admin:@tcp(db:3306)/iptc-editor" up
+
 RUN GOOS=linux GOARCH=amd64 go build -o server .
 
 FROM alpine:latest

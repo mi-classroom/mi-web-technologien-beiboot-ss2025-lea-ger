@@ -69,6 +69,9 @@ func SetupRouter() *gin.Engine {
 			c.JSON(200, gin.H{"success": true})
 		})
 	}
+	r.GET("/api/metadata", func(c *gin.Context) {
+		c.JSON(200, gin.H{"message": "metadata endpoint"})
+	})
 	r.GET("/assets/:imageId", func(c *gin.Context) {
 		id := c.Param("imageId")
 		file, err := getFileById(id)
