@@ -50,25 +50,29 @@
 <div class="min-h-screen p-6 font-sans">
   <h2 class="text-2xl font-bold text-primary mb-6">IPTC Editor</h2>
 
-  <div class="flex gap-6">
-    <!-- Upload Box -->
+  <div class="flex flex-col flex-wrap xl:flex-nowrap lg:flex-row gap-6">
     <div class="flex-1">
       <UploadBox onFilesReceived={handleFilesReceived} />
     </div>
 
-    <!-- File List -->
     <div class="flex-1 space-y-3 overflow-y-auto max-h-[700px]">
       {#each files as file (file.id)}
         <FileListItem
             {file}
             isSelected={file.id === selected?.id}
             click={() => (selected = file)}
+            removed={(fileId) => {
+              files = files.filter((f) => f.id !== fileId);
+              if (selected?.id === fileId) {
+                selected = null;
+              }
+            }}
         />
       {/each}
     </div>
 
     {#if selected}
-      <div class="flex-2">
+      <div class="lg:w-full xl:flex-2">
         <MetadataPanel {selected} />
       </div>
     {/if}

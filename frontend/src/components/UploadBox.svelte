@@ -36,7 +36,7 @@
 </script>
 
 <div
-        class="bg-base-100 rounded-sm border shadow p-6 h-full flex flex-col justify-center items-center text-center"
+        class="bg-base-100 rounded-sm border shadow max-h-80 p-6 h-full flex flex-col justify-center items-center text-center"
         on:drop={handleDrop}
         on:dragover={handleDragOver}
 >
