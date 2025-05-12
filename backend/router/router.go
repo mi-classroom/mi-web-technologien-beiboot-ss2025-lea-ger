@@ -1,6 +1,7 @@
 package router
 
 import (
+	"backend/db"
 	"github.com/barasher/go-exiftool"
 	"github.com/gin-gonic/gin"
 	"os"
@@ -70,7 +71,12 @@ func SetupRouter() *gin.Engine {
 		})
 	}
 	r.GET("/api/metadata", func(c *gin.Context) {
-		c.JSON(200, gin.H{"message": "metadata endpoint"})
+		images, err := db.GetAllImages()
+		if err != nil {
+			c.JSON(500, gin.H{"message": "internal server error", "error": err.Error()})
+			return
+		}
+		c.JSON(200, images)
 	})
 	r.GET("/assets/:imageId", func(c *gin.Context) {
 		id := c.Param("imageId")
