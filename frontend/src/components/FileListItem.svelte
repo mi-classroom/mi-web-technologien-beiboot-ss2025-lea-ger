@@ -1,7 +1,11 @@
 <script lang="ts">
-  export let file;
+  import type {FileItem} from "@/utils.js";
+
+  export let file: FileItem;
   export let isSelected = false;
   export let click: () => void;
+
+  const apiUrl = import.meta.env.VITE_APP_API_URL;
 </script>
 
 <div
@@ -11,12 +15,12 @@
         class:border-primary={isSelected}
 >
     <div class="max-w-12 max-h-16 overflow-hidden">
-        <img src={`/${file.thumb}`} alt={file.name}
+        <img src={`${apiUrl}/assets/${file.id}`} alt={file.filepath}
              class="text-xs  object-cover rounded mr-3"/>
     </div>
     <div class="flex-1">
-        <p class="text-sm font-semibold truncate">{file.name}</p>
-        <p class="text-xs text-gray-400">{file.date}</p>
+        <p class="text-sm font-semibold truncate">{file.filepath}</p>
+        <p class="text-xs text-gray-400">{file.filepath}</p>
     </div>
     <div class="flex flex-col md:flex-row items-center ml-2 text-darkest">
         <button class="btn btn-xs btn-ghost material-symbols-outlined"> edit</button>

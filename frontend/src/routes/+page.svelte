@@ -2,23 +2,49 @@
     import UploadBox from '@/components/UploadBox.svelte';
     import FileListItem from '@/components/FileListItem.svelte';
     import MetadataPanel from '@/components/MetadataPanel.svelte';
+    import type {FileItem} from "@/utils.js";
 
-    type FileItem = {
-        name: string;
-        date: string;
-        thumb: string;
-    };
-
-    let files = [
-        { name: 'AT_KHM_GG6905_FR001_2008-08_Overall-s.jpg', date: '03.05.2025', thumb: 'img1.jpg' },
-        { name: 'AT_KHM_GG6739_FR004_2017-01_Overall-s.jpg', date: '01.12.2023', thumb: 'img2.jpg' },
-        { name: 'CH_SORW_1925-1b_FR006_2008-11_Overall-s.jpg', date: '03.05.2025', thumb: 'img3.jpg' },
-        { name: 'CH_SORW_1925-1a_FR007_1998-11_Overall-s.jpg', date: '01.12.2023', thumb: 'img4.jpg' },
-        { name: 'DE_BStGS_1416_FR005_2006_Overall-s.jpg', date: '12.12.2023', thumb: 'img5.jpg' },
-        { name: 'DE_smbGG_564A_FR010_2013_Overall-s.jpg', date: '03.05.2025', thumb: 'img6.jpg' }
-    ];
-
+    let files: FileItem[] = [];
     let selected: FileItem | null = null;
+
+    async function handleFilesReceived(uploadedFiles: File[]): Promise<void> {
+      const uploadPromises = uploadedFiles.map(async (file) => {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+          const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/assets`, {
+            method: 'POST',
+            body: formData
+          });
+
+          if (!response.ok) {
+            console.error(`Fehler beim Hochladen der Datei: ${file.name}`);
+          }
+        } catch (error) {
+          console.error(`Fehler beim Hochladen der Datei: ${file.name}`, error);
+        }
+      });
+
+      await Promise.all(uploadPromises);
+
+      await loadFiles();
+    }
+
+    async function loadFiles(): Promise<void> {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/api/metadata`);
+        if (response.ok) {
+          files = await response.json();
+        } else {
+          console.error('Fehler beim Laden der Dateien');
+        }
+      } catch (error) {
+        console.error('Fehler beim Laden der Dateien', error);
+      }
+    }
+
+    loadFiles();
 </script>
 
 <div class="min-h-screen p-6 font-sans">
@@ -27,15 +53,15 @@
   <div class="flex gap-6">
     <!-- Upload Box -->
     <div class="flex-1">
-      <UploadBox />
+      <UploadBox onFilesReceived={handleFilesReceived} />
     </div>
 
     <!-- File List -->
     <div class="flex-1 space-y-3 overflow-y-auto max-h-[700px]">
-      {#each files as file (file.name)}
+      {#each files as file (file.id)}
         <FileListItem
             {file}
-            isSelected={file.name === selected?.name}
+            isSelected={file.id === selected?.id}
             click={() => (selected = file)}
         />
       {/each}
