@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"os"
 	"path/filepath"
-	"runtime"
+	"strconv"
 )
 
 func SetupRouter() *gin.Engine {
@@ -14,10 +14,10 @@ func SetupRouter() *gin.Engine {
 	r.GET("/ping", func(c *gin.Context) {
 		c.String(200, "pong")
 	})
-	api := r.Group("/api/metadata/:imageId")
+	api := r.Group("")
 	api.Use(assetExistsMiddleware())
 	{
-		api.GET("", func(c *gin.Context) {
+		api.GET("/api/metadata/:imageId", func(c *gin.Context) {
 			file, _ := getFileById(c.Param("imageId"))
 			et, err := exiftool.NewExiftool()
 			if err != nil {
@@ -31,7 +31,7 @@ func SetupRouter() *gin.Engine {
 			}
 			c.JSON(404, gin.H{"message": "metadata not found", "id": c.Param("imageId")})
 		})
-		api.POST("", func(c *gin.Context) {
+		api.POST("/api/metadata/:imageId", func(c *gin.Context) {
 			file, _ := getFileById(c.Param("imageId"))
 			et, err := exiftool.NewExiftool()
 			defer et.Close()
@@ -69,6 +69,25 @@ func SetupRouter() *gin.Engine {
 
 			c.JSON(200, gin.H{"success": true})
 		})
+		api.GET("/assets/:imageId", func(c *gin.Context) {
+			id := c.Param("imageId")
+			file, _ := getFileById(id)
+			c.File(file)
+		})
+		api.DELETE("/api/metadata/:imageId", func(c *gin.Context) {
+			id := c.Param("imageId")
+			intID, err := strconv.Atoi(id)
+			if err != nil {
+				c.JSON(400, gin.H{"message": "invalid image ID"})
+				return
+			}
+			err = db.DeleteImageByID(intID)
+			if err != nil {
+				c.JSON(500, gin.H{"message": "internal server error"})
+				return
+			}
+			c.JSON(200, gin.H{"success": true})
+		})
 	}
 	r.GET("/api/metadata", func(c *gin.Context) {
 		images, err := db.GetAllImages()
@@ -76,20 +95,29 @@ func SetupRouter() *gin.Engine {
 			c.JSON(500, gin.H{"message": "internal server error", "error": err.Error()})
 			return
 		}
+		for i := range images {
+			images[i].Filepath = ""
+		}
 		c.JSON(200, images)
 	})
-	r.GET("/assets/:imageId", func(c *gin.Context) {
-		id := c.Param("imageId")
-		file, err := getFileById(id)
+
+	r.POST("/assets", func(c *gin.Context) {
+		file, err := c.FormFile("file")
+		if err != nil {
+			c.JSON(400, gin.H{"message": "invalid file"})
+			return
+		}
+		id, err := db.AddImage(file.Filename)
 		if err != nil {
 			c.JSON(500, gin.H{"message": "internal server error"})
 			return
 		}
-		if file == "" {
-			c.JSON(404, gin.H{"message": "image not found", "id": id})
+		err = c.SaveUploadedFile(file, filepath.Join("assets", file.Filename))
+		if err != nil {
+			c.JSON(500, gin.H{"message": "internal server error"})
 			return
 		}
-		c.File(file)
+		c.JSON(200, gin.H{"id": id})
 	})
 
 	return r
@@ -100,7 +128,7 @@ func assetExistsMiddleware() gin.HandlerFunc {
 		id := c.Param("imageId")
 		file, err := getFileById(id)
 		if err != nil {
-			c.JSON(500, gin.H{"message": "internal server error"})
+			c.JSON(500, gin.H{"message": "internal server error", "error": err.Error()})
 			c.Abort()
 			return
 		}
@@ -114,22 +142,22 @@ func assetExistsMiddleware() gin.HandlerFunc {
 }
 
 func getFileById(id string) (string, error) {
-	_, b, _, _ := runtime.Caller(0) // path to current file
-	basePath := filepath.Join(filepath.Dir(b), "../assets")
-
-	dir, err := os.ReadDir(basePath)
+	intID, err := strconv.Atoi(id)
 	if err != nil {
 		return "", err
 	}
-	for _, file := range dir {
-		name := file.Name()
-		fileNameWithoutExt := name[:len(name)-len(filepath.Ext(name))]
-		if fileNameWithoutExt == id {
-			fullPath := filepath.Join(basePath, name)
-			if _, err := os.Stat(fullPath); err == nil {
-				return fullPath, nil
-			}
-		}
+	image, err := db.GetImageByID(intID)
+	if err != nil {
+		return "", err
 	}
-	return "", nil
+	if image == nil || image.Filepath == "" {
+		return "", os.ErrNotExist
+	}
+	path := filepath.Join("assets", image.Filepath)
+
+	if _, err := os.Stat(path); err != nil {
+		return "", err
+	}
+
+	return path, nil
 }
