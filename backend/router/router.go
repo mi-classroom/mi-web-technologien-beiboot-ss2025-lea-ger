@@ -95,9 +95,6 @@ func SetupRouter() *gin.Engine {
 			c.JSON(500, gin.H{"message": "internal server error", "error": err.Error()})
 			return
 		}
-		for i := range images {
-			images[i].Filepath = ""
-		}
 		c.JSON(200, images)
 	})
 
