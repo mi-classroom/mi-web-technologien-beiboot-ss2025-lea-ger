@@ -3,6 +3,7 @@ package router
 import (
 	"backend/db"
 	"github.com/barasher/go-exiftool"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"os"
 	"path/filepath"
@@ -11,6 +12,14 @@ import (
 
 func SetupRouter() *gin.Engine {
 	r := gin.Default()
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+	}))
+
 	r.GET("/ping", func(c *gin.Context) {
 		c.String(200, "pong")
 	})
