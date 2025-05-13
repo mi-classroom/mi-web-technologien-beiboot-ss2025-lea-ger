@@ -1,6 +1,15 @@
 <script lang="ts">
-  import { onMount } from "svelte";
-  import type { FileItem } from "@/utils.js";
+  import type {FileItem} from "@/utils.js";
+
+  type Iptc = {
+    [key: string]: {
+      name: string;
+      description: string;
+      type: string;
+      required: boolean;
+      default?: string;
+    };
+  }
 
   export let selected: FileItem;
 

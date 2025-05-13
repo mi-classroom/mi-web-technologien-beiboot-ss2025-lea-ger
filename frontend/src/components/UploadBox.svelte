@@ -36,13 +36,13 @@
 </script>
 
 <div
-        class="bg-base-100 rounded-sm border shadow max-h-80 p-6 h-full flex flex-col justify-center items-center text-center"
+        class="bg-base-100 rounded-sm border border-primary shadow max-h-80 p-6 h-full flex flex-col justify-center items-center text-center"
         on:drop={handleDrop}
         on:dragover={handleDragOver}
 >
     <div class="text-3xl mb-4">⬆️</div>
-    <p class="text-gray-600 mb-2">Dateien via Drag & Drop hochladen<br/>oder</p>
-    <label class="btn bg-[#2fcacb] text-white hover:bg-[#28b8b9]">
+    <p class="text-base-content mb-2">Dateien via Drag & Drop hochladen<br/>oder</p>
+    <label class="btn bg-primary text-primary-content hover:ring-2 hover:ring-primary">
         Dateien auswählen
         <input
                 type="file"

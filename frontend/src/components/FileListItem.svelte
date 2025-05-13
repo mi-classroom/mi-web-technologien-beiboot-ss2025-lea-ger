@@ -36,11 +36,11 @@
 
 <div
         on:click={() => click()}
-        class="flex items-center space-x-2 bg-base-100 dark:bg-dark rounded-sm border cursor-pointer shadow-sm hover:shadow transition-all duration-200"
+        class="list-row flex items-center space-x-2 bg-base-100 dark:bg-dark rounded-sm border cursor-pointer shadow-sm hover:shadow transition-all duration-200"
         class:selected={isSelected}
         class:border-primary={isSelected}
 >
-    <div class="h-28 w-28 overflow-hidden">
+    <div class="list-col-wrap h-28 w-28 overflow-hidden">
         <img src={`${apiUrl}/assets/${file.id}`} alt={file.filepath}
              class="text-xs object-contain bg-neutral w-full h-full rounded"/>
     </div>
@@ -48,10 +48,9 @@
         <p class="max-w-40 text-sm font-semibold truncate">{file.filepath}</p>
         <p class="max-w-40 text-xs">{date}</p>
     </div>
-    <div class="flex items-center ml-2 text-darkest">
+    <div class="list-col-wrap flex items-center mx-2">
         <button
                 class="btn btn-xs btn-ghost material-symbols-outlined"
-
         > edit
         </button>
         <button
