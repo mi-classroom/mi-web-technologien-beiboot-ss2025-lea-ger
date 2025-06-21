@@ -46,7 +46,7 @@
         type="checkbox"
         class="checkbox checkbox-primary"
         checked={isSelected}
-        on:change|stopPropagation={() => onSelect()}
+        on:click|stopPropagation={() => onSelect()}
     />
   </div>
   <div class="list-col-wrap h-28 w-28 overflow-hidden">

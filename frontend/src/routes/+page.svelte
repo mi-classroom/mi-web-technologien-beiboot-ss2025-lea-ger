@@ -5,7 +5,8 @@
     import type {FileItem} from "@/utils.js";
 
     let files: FileItem[] = [];
-    let selected: FileItem | null = null;
+    let selected: FileItem[] = [];
+    let opened: FileItem | null = null;
 
     /* Dummy files */
     files.push(
@@ -60,6 +61,14 @@
         }
     }
 
+    function selectFile(file: FileItem): void {
+        if (selected.map(it => it.id).includes(file.id)) {
+            selected = selected.filter(it => it.id !== file.id);
+        } else {
+            selected = [...selected, file];
+        }
+    }
+
     loadFiles();
 </script>
 
@@ -71,23 +80,43 @@
       <UploadBox onFilesReceived={handleFilesReceived}/>
     </div>
 
-    {#if files.length > 0}
-      <div class="list flex-1 space-y-3 overflow-y-auto max-h-[700px]">
-        {#each files as file (file.id)}
-          <FileListItem
-              {file}
-              isSelected={file.id === selected?.id}
-              click={() => (selected = file)}
-              removed={(fileId) => {
+    <div class="flex-1">
+      {#if selected.length > 0}
+        <div class="lg:w-full xl:flex-1">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold">Ausgewählte Dateien ({selected.length})</h3>
+            <button
+                class="btn btn-primary btn-sm"
+                on:click={() => {
+                selected = [];
+              }}
+            >
+              Alle abwählen
+            </button>
+          </div>
+        </div>
+      {/if}
+
+      {#if files.length > 0}
+        <div class="list space-y-3 overflow-y-auto max-h-[700px]">
+          {#each files as file (file.id)}
+            <FileListItem
+                {file}
+                isSelected={selected.map(it => it.id).includes(file.id)}
+                onSelect={() => selectFile(file)}
+                onEdit={() => (opened = file)}
+                removed={(fileId) => {
               files = files.filter((f) => f.id !== fileId);
-              if (selected?.id === fileId) {
-                selected = null;
+              if (opened?.id === fileId) {
+                opened = null;
               }
             }}
-          />
-        {/each}
-      </div>
-    {/if}
+            />
+          {/each}
+        </div>
+      {/if}
+    </div>
+
     {#if selected}
       <div class="lg:w-full xl:flex-1">
         <MetadataPanel {selected}/>
