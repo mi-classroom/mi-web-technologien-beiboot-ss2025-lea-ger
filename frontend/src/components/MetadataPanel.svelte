@@ -1,7 +1,7 @@
 <script lang="ts">
-  import type {FileItem} from "@/utils.js";
-  import { onMount } from 'svelte';
-  import { getAllTags, isWritable, getTagType, getTagOptions, type IPTCTag } from '../iptcTagHelpers';
+  import type {FileItem, IPTCTag} from "@/utils.js";
+  import {onMount} from 'svelte';
+  import {getAllTags} from '@/utils.js';
   import MetadataField from './MetadataField.svelte';
 
   export let selected: FileItem;
@@ -13,14 +13,15 @@
   let iptcTags: IPTCTag[] = [];
   let hasChanges = false;
   let loading = true;
+  let collapseOpen = false;
 
   async function fetchMetadata(): Promise<void> {
     try {
       const response = await fetch(`${apiUrl}/api/metadata/${selected.id}`);
       if (response.ok) {
         fileMetadata = await response.json();
-        originalMetadata = { ...fileMetadata };
-        editableMetadata = { ...fileMetadata };
+        originalMetadata = {...fileMetadata};
+        editableMetadata = {...fileMetadata};
       } else {
         console.error("Fehler beim Abrufen der Metadaten");
       }
@@ -39,6 +40,10 @@
     hasChanges = Object.keys(editableMetadata).some(k => editableMetadata[k] !== originalMetadata?.[k]);
   }
 
+  function getTag(tagName: string): IPTCTag | undefined {
+    return iptcTags.find(t => t.name === tagName);
+  }
+
   onMount(async () => {
     await fetchMetadata();
     await loadTags();
@@ -55,24 +60,42 @@
     </div>
 
     {#if loading}
-      <p class="text-gray-500">Lade Metadaten...</p>
+        <p class="text-gray-500">Lade Metadaten...</p>
     {:else if fileMetadata}
         <div class="text-sm divide-y">
             {#each Object.entries(editableMetadata) as [key, value]}
-                {#if iptcTags.length}
-                  {#await Promise.resolve(iptcTags.find(t => t.name === key)) then tag}
+                {#if iptcTags.some(tag => tag.name === key)}
                     <MetadataField
-                      keyName={key}
-                      {value}
-                      originalValue={originalMetadata ? originalMetadata[key] : ''}
-                      {tag}
-                      onEdit={onEdit}
+                            keyName={key}
+                            value={value}
+                            originalValue={originalMetadata ? originalMetadata[key] : ''}
+                            tag={getTag(key)}
+                            onEdit={onEdit}
                     />
-                  {/await}
                 {/if}
             {/each}
+
+            <div class="collapse collapse-arrow border border-base-300 bg-base-100 rounded-box mt-4">
+                <input type="checkbox" bind:checked={collapseOpen} />
+                <div class="collapse-title">
+                    Nicht-IPTC-Tags
+                </div>
+                <div class="collapse-content">
+                    {#each Object.entries(editableMetadata) as [key, value]}
+                        {#if !iptcTags.some(tag => tag.name === key)}
+                            <MetadataField
+                                    keyName={key}
+                                    value={value}
+                                    originalValue={originalMetadata ? originalMetadata[key] : ''}
+                                    tag={getTag(key)}
+                                    onEdit={onEdit}
+                            />
+                        {/if}
+                    {/each}
+                </div>
+            </div>
         </div>
     {:else}
-        <p class="text-gray-500">Lade Metadaten...</p>
+        <p class="text-gray-500">Keine Metadaten gefunden.</p>
     {/if}
 </div>

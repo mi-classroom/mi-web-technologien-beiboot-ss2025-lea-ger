@@ -1,15 +1,18 @@
 <script lang="ts">
-  import type { IPTCTag } from '../iptcTagHelpers';
+  import type { IPTCTag } from '@/utils.js';
   export let keyName: string;
   export let value: string;
   export let originalValue: string;
   export let tag: IPTCTag | undefined;
   export let onEdit: (key: string, value: string) => void;
+
+  console.log(tag)
 </script>
 
 <div class="flex items-center justify-between py-2 gap-2">
   <span class="font-semibold flex items-center gap-1">
     {keyName}
+    {tag?.writable}
     {#if tag && tag.writable}
       <span class="material-symbols-outlined text-primary cursor-pointer" title="Bearbeitbar">edit</span>
     {/if}

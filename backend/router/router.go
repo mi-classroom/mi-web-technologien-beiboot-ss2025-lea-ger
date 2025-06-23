@@ -33,7 +33,7 @@ func SetupRouter() *gin.Engine {
 				c.JSON(500, gin.H{"message": "internal server error: " + err.Error()})
 				return
 			}
-			fileInfos := et.ExtractMetadata(file)
+			fileInfos := et.ExtractMetadata(" -iptc:All " + file)
 			if len(fileInfos) > 0 {
 				c.JSON(200, fileInfos[0].Fields)
 				return
