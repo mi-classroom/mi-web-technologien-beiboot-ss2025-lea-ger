@@ -126,6 +126,7 @@
                         <FileListItem
                                 {file}
                                 isSelected={selected.map(it => it.id).includes(file.id)}
+                                isOpen={opened?.id === file.id}
                                 onSelect={() => selectFile(file)}
                                 onEdit={() => (opened = file)}
                                 removed={(fileId) => {
@@ -140,7 +141,7 @@
             {/if}
         </div>
 
-        {#if selected}
+        {#if opened}
             <div class="lg:w-full xl:flex-1">
                 <MetadataPanel selected={opened} />
             </div>
