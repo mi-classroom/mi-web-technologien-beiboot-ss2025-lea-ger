@@ -79,14 +79,18 @@
     <div class="flex flex-col flex-wrap xl:flex-nowrap lg:flex-row gap-6">
         <!-- UploadBox im Modal -->
         {#if showUploadModal}
-            <div class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-                <div class="bg-base-100 dark:bg-dark p-6 rounded shadow-lg max-h-[80vh] w-full max-w-lg overflow-y-auto relative">
-                    <button class="absolute top-2 right-2 btn btn-sm btn-error"
-                            on:click={() => showUploadModal = false}>Schließen
+            <div class="modal modal-open">
+                <div class="modal-box relative">
+                    <button
+                            class="btn btn-sm btn-error absolute top-2 right-2"
+                            on:click={() => (showUploadModal = false)}
+                    >
+                        Schließen
                     </button>
-                    <h2 class="text-lg font-bold mb-4"><span class="material-symbols-outlined">
-add_photo_alternate
-</span> Dateien hochladen</h2>
+                    <h2 class="text-lg font-bold mb-4">
+                        <span class="material-symbols-outlined">add_photo_alternate</span>
+                        Dateien hochladen
+                    </h2>
                     <UploadBox onFilesReceived={handleFilesReceived}/>
                 </div>
             </div>
@@ -100,9 +104,10 @@ add_photo_alternate
                         Dateien hochladen
                     </button>
                 </div>
-                {#if selected.length > 0}
-                    <div class="flex items-center justify-between">
-                        <h3 class="text-lg font-semibold">Ausgewählte Dateien ({selected.length})</h3>
+
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-semibold">Ausgewählte Dateien ({selected.length})</h3>
+                    {#if selected.length > 0}
                         <button
                                 class="btn btn-primary btn-sm"
                                 on:click={() => {
@@ -111,8 +116,9 @@ add_photo_alternate
                         >
                             Alle abwählen
                         </button>
-                    </div>
-                {/if}
+
+                    {/if}
+                </div>
             </div>
             {#if files.length > 0}
                 <div class="list space-y-3 overflow-y-auto max-h-[700px]">
@@ -123,11 +129,11 @@ add_photo_alternate
                                 onSelect={() => selectFile(file)}
                                 onEdit={() => (opened = file)}
                                 removed={(fileId) => {
-              files = files.filter((f) => f.id !== fileId);
-              if (opened?.id === fileId) {
-                opened = null;
-              }
-            }}
+                                  files = files.filter((f) => f.id !== fileId);
+                                  if (opened?.id === fileId) {
+                                    opened = null;
+                                  }
+                                }}
                         />
                     {/each}
                 </div>
@@ -136,7 +142,7 @@ add_photo_alternate
 
         {#if selected}
             <div class="lg:w-full xl:flex-1">
-                <MetadataPanel {selected}/>
+                <MetadataPanel selected={opened} />
             </div>
         {/if}
     </div>
