@@ -2,9 +2,13 @@ package router
 
 import (
 	"backend/db"
+	apperrors "backend/errors"
+	"errors"
+	"fmt"
 	"github.com/barasher/go-exiftool"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -33,7 +37,7 @@ func SetupRouter() *gin.Engine {
 				c.JSON(500, gin.H{"message": "internal server error: " + err.Error()})
 				return
 			}
-			fileInfos := et.ExtractMetadata(" -iptc:All " + file)
+			fileInfos := et.ExtractMetadata(file)
 			if len(fileInfos) > 0 {
 				c.JSON(200, fileInfos[0].Fields)
 				return
@@ -61,6 +65,10 @@ func SetupRouter() *gin.Engine {
 				return
 			}
 
+			if fileInfos[0].Fields == nil {
+				fileInfos[0].Fields = make(map[string]interface{})
+			}
+
 			for key, value := range requestBody {
 				if key == "FileName" {
 					continue
@@ -71,8 +79,8 @@ func SetupRouter() *gin.Engine {
 			et.WriteMetadata(fileInfos)
 
 			updatedFileInfos := et.ExtractMetadata(file)
-			if updatedFileInfos[0].Err != nil {
-				c.JSON(500, gin.H{"message": "internal server error: " + err.Error()})
+			if len(updatedFileInfos) == 0 || updatedFileInfos[0].Err != nil {
+				c.JSON(500, gin.H{"message": "internal server error: " + updatedFileInfos[0].Err.Error()})
 				return
 			}
 
@@ -83,7 +91,7 @@ func SetupRouter() *gin.Engine {
 			file, _ := getFileById(id)
 			c.File(file)
 		})
-		api.DELETE("/api/metadata/:imageId", func(c *gin.Context) {
+		api.DELETE("/assets/:imageId", func(c *gin.Context) {
 			id := c.Param("imageId")
 			intID, err := strconv.Atoi(id)
 			if err != nil {
@@ -132,15 +140,19 @@ func SetupRouter() *gin.Engine {
 func assetExistsMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("imageId")
-		file, err := getFileById(id)
+		_, err := getFileById(id)
 		if err != nil {
-			c.JSON(500, gin.H{"message": "internal server error", "error": err.Error()})
-			c.Abort()
-			return
-		}
-		if file == "" {
-			c.JSON(404, gin.H{"message": "image not found", "id": id})
-			c.Abort()
+			var status int
+			switch {
+			case errors.Is(err, apperrors.ErrInvalidID):
+				status = http.StatusBadRequest
+			case errors.Is(err, apperrors.ErrImageNotFound),
+				errors.Is(err, apperrors.ErrFileNotFound):
+				status = http.StatusNotFound
+			default:
+				status = http.StatusInternalServerError
+			}
+			c.JSON(status, gin.H{"message": err.Error()})
 			return
 		}
 		c.Next()
@@ -150,19 +162,20 @@ func assetExistsMiddleware() gin.HandlerFunc {
 func getFileById(id string) (string, error) {
 	intID, err := strconv.Atoi(id)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("%w: %v", apperrors.ErrInvalidID, err)
 	}
-	image, err := db.GetImageByID(intID)
-	if err != nil {
-		return "", err
-	}
-	if image == nil || image.Filepath == "" {
-		return "", os.ErrNotExist
-	}
-	path := filepath.Join("assets", image.Filepath)
 
+	image, err := db.GetImageByID(intID)
+	if image == nil || image.Filepath == "" {
+		return "", apperrors.ErrImageNotFound
+	}
+
+	path := filepath.Join("assets", image.Filepath)
 	if _, err := os.Stat(path); err != nil {
-		return "", err
+		if os.IsNotExist(err) {
+			return "", apperrors.ErrFileNotFound
+		}
+		return "", fmt.Errorf("error checking file: %w", err)
 	}
 
 	return path, nil
