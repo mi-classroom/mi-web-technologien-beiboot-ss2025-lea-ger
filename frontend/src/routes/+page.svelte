@@ -9,6 +9,9 @@
   let opened: FileItem | null = null;
   let showUploadModal = false;
 
+  $: isSelected = selected.length > 0;
+  $: indeterminate = selected.length > 0 && selected.length < files.length;
+
   /* Dummy files */
   files.push(
     {
@@ -105,19 +108,24 @@
                     </button>
                 </div>
 
-                <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4 px-4">
+                    <label class="label cursor-pointer">
+                        <input
+                                id="select-all"
+                                type="checkbox"
+                                class="checkbox checkbox-primary"
+                                bind:checked={isSelected}
+                                bind:indeterminate={indeterminate}
+                                on:change={() => {
+                                        if (selected.length === files.length) {
+                                            selected = [];
+                                        } else {
+                                            selected = [...files];
+                                        }
+                                    }}
+                        />
+                    </label>
                     <h3 class="text-lg font-semibold">Ausgewählte Dateien ({selected.length})</h3>
-                    {#if selected.length > 0}
-                        <button
-                                class="btn btn-primary btn-sm"
-                                on:click={() => {
-                selected = [];
-              }}
-                        >
-                            Alle abwählen
-                        </button>
-
-                    {/if}
                 </div>
             </div>
             {#if files.length > 0}
@@ -143,7 +151,7 @@
 
         {#if opened}
             <div class="lg:w-full xl:flex-1">
-                <MetadataPanel selected={opened} />
+                <MetadataPanel selected={opened}/>
             </div>
         {/if}
     </div>
