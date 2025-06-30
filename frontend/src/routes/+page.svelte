@@ -3,11 +3,14 @@
   import FileListItem from '@/components/FileListItem.svelte';
   import MetadataPanel from '@/components/MetadataPanel.svelte';
   import type {FileItem} from "@/utils.js";
+  import BulkEditor from "@/components/BulkEditor.svelte";
 
   let files: FileItem[] = [];
   let selected: FileItem[] = [];
   let opened: FileItem | null = null;
   let showUploadModal = false;
+  let showEditModal = false;
+  let showDeleteConfirmation = false;
 
   $: isSelected = selected.length > 0;
   $: indeterminate = selected.length > 0 && selected.length < files.length;
@@ -73,6 +76,25 @@
     }
   }
 
+  async function deleteSelected() {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/api/files`, {
+        method: 'DELETE',
+        body: JSON.stringify({ids: selected.map(item => item.id)}),
+        headers: {'Content-Type': 'application/json'}
+      });
+      if (response.ok) {
+        selected = [];
+        alert('Dateien erfolgreich gelöscht.');
+      } else {
+        console.error('Fehler beim Löschen der Dateien');
+      }
+    } catch (error) {
+      console.error('Fehler beim Löschen der Dateien', error);
+    }
+    showDeleteConfirmation = false;
+  }
+
   loadFiles();
 </script>
 
@@ -80,7 +102,6 @@
     <h2 class="text-2xl font-bold text-primary mb-6">IPTC Editor</h2>
 
     <div class="flex flex-col flex-wrap xl:flex-nowrap lg:flex-row gap-6">
-        <!-- UploadBox im Modal -->
         {#if showUploadModal}
             <div class="modal modal-open">
                 <div class="modal-box relative">
@@ -108,24 +129,37 @@
                     </button>
                 </div>
 
-                <div class="flex items-center gap-4 px-4">
-                    <label class="label cursor-pointer">
-                        <input
-                                id="select-all"
-                                type="checkbox"
-                                class="checkbox checkbox-primary"
-                                bind:checked={isSelected}
-                                bind:indeterminate={indeterminate}
-                                on:change={() => {
+                <div class="flex items-center justify-between px-4">
+                    <div class="flex gap-4">
+                        <label class="label cursor-pointer">
+                            <input
+                                    id="select-all"
+                                    type="checkbox"
+                                    class="checkbox checkbox-primary"
+                                    bind:checked={isSelected}
+                                    bind:indeterminate={indeterminate}
+                                    on:change={() => {
                                         if (selected.length === files.length) {
                                             selected = [];
                                         } else {
                                             selected = [...files];
                                         }
                                     }}
-                        />
-                    </label>
-                    <h3 class="text-lg font-semibold">Ausgewählte Dateien ({selected.length})</h3>
+                            />
+                        </label>
+                        <h3 class="text-lg font-semibold">Ausgewählte Dateien ({selected.length})</h3>
+                    </div>
+
+                    <div class="flex gap-4 mt-4">
+                        <button class="btn btn-error btn-sm" on:click={showDeleteConfirmation = true}
+                                disabled={selected.length === 0}>
+                            Löschen
+                        </button>
+                        <button class="btn btn-primary btn-sm" on:click={() => showEditModal = true}
+                                disabled={selected.length === 0}>
+                            Bearbeiten
+                        </button>
+                    </div>
                 </div>
             </div>
             {#if files.length > 0}
@@ -148,6 +182,23 @@
                 </div>
             {/if}
         </div>
+
+        {#if showEditModal}
+            <BulkEditor bind:show={showEditModal} onClose={() => showEditModal = false} {selected}/>
+        {/if}
+
+        {#if showDeleteConfirmation}
+            <div class="modal modal-open">
+                <div class="modal-box">
+                    <h3 class="font-bold text-lg">Löschen bestätigen</h3>
+                    <p>Möchten Sie die ausgewählten Dateien wirklich löschen?</p>
+                    <div class="modal-action">
+                        <button class="btn btn-error" on:click={deleteSelected}>Ja, löschen</button>
+                        <button class="btn" on:click={() => showDeleteConfirmation = false}>Abbrechen</button>
+                    </div>
+                </div>
+            </div>
+        {/if}
 
         {#if opened}
             <div class="lg:w-full xl:flex-1">
