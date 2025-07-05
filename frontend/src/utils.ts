@@ -11,6 +11,7 @@ export type IPTCTag = {
   id: string;
   name: string;
   type: string;
+  g2: string;
   writable: boolean;
   description?: string;
   values?: { id: string; value: string }[];
@@ -39,6 +40,7 @@ export async function getAllTags(): Promise<IPTCTag[]> {
         id: tag.getAttribute('id') || '',
         name: tag.getAttribute('name') || '',
         type: tag.getAttribute('type') || '',
+        g2: tag.getAttribute('g2') || '',
         writable,
         description: tag.getElementsByTagName('desc')[0]?.textContent || undefined,
         values: values.length > 0 ? values : undefined
@@ -48,6 +50,11 @@ export async function getAllTags(): Promise<IPTCTag[]> {
 
   window.__iptcTags = tags;
   return tags;
+}
+
+export async function getTagByName(tagName: string): Promise<IPTCTag | undefined> {
+  const tags = await getAllTags();
+  return tags.find(t => t.name === tagName);
 }
 
 export async function isWritable(tagName: string): Promise<boolean> {

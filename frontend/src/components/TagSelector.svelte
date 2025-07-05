@@ -15,7 +15,7 @@
     onMount(loadTags);
 </script>
 
-<div class="form-control mt-4">
+<div class="form-control flex gap-2 items-center mt-4">
     <label class="label">
         <span class="label-text">{label}</span>
     </label>
@@ -24,10 +24,10 @@
             <option value={tag.name}>{tag.name}</option>
         {/each}
     </select>
-    <button class="btn btn-primary mt-2" on:click={() => {
+    <button class="btn btn-primary" on:click={() => {
         if (selectedTag) {
             onSelect(selectedTag);
-            selectedTag = null; // Reset after selection
+            selectedTag = null;
         }
     }}>
         Hinzufügen
