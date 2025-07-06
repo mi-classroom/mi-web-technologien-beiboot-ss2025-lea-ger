@@ -12,5 +12,5 @@ type Image struct {
 	Filepath         string    `json:"filepath"`
 	UploadDate       time.Time `json:"upload_date"`
 	ModificationDate time.Time `json:"modification_date"`
-	FolderID         int       `json:"folder_id"`
+	FolderId         int       `json:"folder_id"`
 }

@@ -107,6 +107,21 @@ func SetupRouter() *gin.Engine {
 		})
 	}
 	r.GET("/api/metadata", func(c *gin.Context) {
+		folderIdStr := c.Query("folder_id")
+		if folderIdStr != "" {
+			folderId, err := strconv.Atoi(folderIdStr)
+			if err != nil {
+				c.JSON(400, gin.H{"message": "invalid folder_id"})
+				return
+			}
+			images, err := db.GetImagesByFolderID(folderId)
+			if err != nil {
+				c.JSON(500, gin.H{"message": "internal server error", "error": err.Error()})
+				return
+			}
+			c.JSON(200, images)
+			return
+		}
 		images, err := db.GetAllImages()
 		if err != nil {
 			c.JSON(500, gin.H{"message": "internal server error", "error": err.Error()})
@@ -222,9 +237,12 @@ func getFileById(id string) (string, error) {
 	}
 
 	folderName := ""
-	if image.FolderID != 0 {
-		row := db.DB.QueryRow("SELECT name FROM folders WHERE id = $1", image.FolderID)
-		_ = row.Scan(&folderName)
+	if image.FolderId != 0 {
+		folder, err := db.GetFolderByID(image.FolderId)
+		if err != nil {
+			return "", apperrors.ErrFolderNotFound
+		}
+		folderName = folder.Name
 	}
 	var path string
 	if folderName != "" {

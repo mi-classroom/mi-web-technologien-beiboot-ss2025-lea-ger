@@ -59,7 +59,7 @@ func AddImage(filepath string, folderID int) (int, error) {
 func GetImageByID(id int) (*Image, error) {
 	query := `SELECT id, filepath, upload_date, modification_date, folder_id FROM images WHERE id = $1`
 	image := &Image{}
-	err := DB.QueryRow(query, id).Scan(&image.ID, &image.Filepath, &image.UploadDate, &image.ModificationDate, &image.FolderID)
+	err := DB.QueryRow(query, id).Scan(&image.ID, &image.Filepath, &image.UploadDate, &image.ModificationDate, &image.FolderId)
 	if err != nil {
 		log.Printf("Error retrieving image: %v", err)
 		return nil, err
@@ -94,7 +94,7 @@ func GetAllImages() ([]Image, error) {
 	var images []Image
 	for rows.Next() {
 		image := Image{}
-		err := rows.Scan(&image.ID, &image.Filepath, &image.UploadDate, &image.ModificationDate, &image.FolderID)
+		err := rows.Scan(&image.ID, &image.Filepath, &image.UploadDate, &image.ModificationDate, &image.FolderId)
 		if err != nil {
 			log.Printf("Error scanning image: %v", err)
 			return nil, err
@@ -113,4 +113,31 @@ func GetFolderByID(id int) (*Folder, error) {
 		return nil, err
 	}
 	return folder, nil
+}
+
+func GetImagesByFolderID(folderID int) ([]Image, error) {
+	query := `SELECT id, filepath, upload_date, modification_date, folder_id FROM images WHERE folder_id = $1`
+	rows, err := DB.Query(query, folderID)
+	if err != nil {
+		log.Printf("Error retrieving images by folder: %v", err)
+		return nil, err
+	}
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+			log.Printf("Error closing rows: %v", err)
+		}
+	}(rows)
+
+	var images []Image
+	for rows.Next() {
+		image := Image{}
+		err := rows.Scan(&image.ID, &image.Filepath, &image.UploadDate, &image.ModificationDate, &image.FolderId)
+		if err != nil {
+			log.Printf("Error scanning image: %v", err)
+			return nil, err
+		}
+		images = append(images, image)
+	}
+	return images, nil
 }
