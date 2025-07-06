@@ -15,7 +15,7 @@
 
   async function deleteFile(): Promise<void> {
     try {
-      const response = await fetch(`${apiUrl}/api/metadata/${file.id}`, {
+      const response = await fetch(`${apiUrl}/assets/${file.id}`, {
         method: "DELETE",
       });
 

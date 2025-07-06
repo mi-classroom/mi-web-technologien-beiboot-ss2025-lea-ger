@@ -16,27 +16,33 @@
 </script>
 
 <ul>
-    <li class="flex items-center gap-2 py-1 px-2"
+    <li class="py-1 px-2 flex flex-wrap items-center gap-1"
         class:bg-primary={selected === tree}
-        transition:slide
     >
     <span class="material-symbols-outlined">
       {arrowDown ? 'folder_open' : 'folder'}
     </span>
         {#if children}
-      <span on:click={toggleExpansion}>
+      <span on:click={toggleExpansion} class="flex items-center">
         <span class="material-symbols-outlined">
           {arrowDown ? 'subdirectory_arrow_right' : 'chevron_forward'}
         </span>
         <span
                 class:highlight={selected === tree}
+                class="cursor-pointer"
                 on:click|stopPropagation={() => onSelect(tree)}>
           {name}
         </span>
       </span>
             {#if expanded}
-                {#each children as child}
-                    <svelte:self tree={child} {selected} {onSelect}/>
+                {#each children as child (child.name)}
+                    <div
+                            transition:slide
+                            class={'w-full bg-base-300 dark:bg-darker'}
+                    >
+                        <svelte:self
+                                tree={child} {selected} {onSelect}/>
+                    </div>
                 {/each}
             {/if}
         {:else}

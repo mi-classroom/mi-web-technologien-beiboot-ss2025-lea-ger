@@ -4,8 +4,7 @@
   import MetadataPanel from '@/components/MetadataPanel.svelte';
   import type {FileItem, Folder} from "@/utils.js";
   import BulkEditor from "@/components/BulkEditor.svelte";
-  import TreeView from "@/components/TreeView.svelte";
-
+  import FolderPanel from "@/components/FolderPanel.svelte";
 
   let files: FileItem[] = [];
   let selected: FileItem[] = [];
@@ -13,13 +12,7 @@
   let showUploadModal = false;
   let showEditModal = false;
   let showDeleteConfirmation = false;
-
-  let rootFolder: Folder = {
-    id: 0,
-    name: '/',
-  };
-
-  let selectedFolder: Folder | null = rootFolder;
+  let selectedFolder: {id: number, name: string} | null = null;
 
   $: isSelected = selected.length > 0;
   $: indeterminate = selected.length > 0 && selected.length < files.length;
@@ -44,6 +37,7 @@
     const uploadPromises = uploadedFiles.map(async (file) => {
       const formData = new FormData();
       formData.append('file', file);
+      formData.append('folder_id', selectedFolder?.id || 0);
 
       try {
         const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/assets`, {
@@ -54,6 +48,7 @@
         if (!response.ok) {
           console.error(`Fehler beim Hochladen der Datei: ${file.name}`);
         }
+        showUploadModal = false;
       } catch (error) {
         console.error(`Fehler beim Hochladen der Datei: ${file.name}`, error);
       }
@@ -64,24 +59,12 @@
     await loadFiles();
   }
 
-  async function loadFolders(): Promise<void> {
-    try {
-      const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/api/folders`);
-      if (response.ok) {
-        rootFolder.children = await response.json();
-      } else {
-        console.error('Fehler beim Laden der Ordner');
-      }
-    } catch (error) {
-      console.error('Fehler beim Laden der Ordner', error);
-    }
-  }
-
   async function loadFiles(): Promise<void> {
+    const folderId = selectedFolder?.id || 0;
     try {
-      const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/api/metadata`);
+      const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/api/metadata?folder_id=${folderId}`);
       if (response.ok) {
-        files = await response.json();
+        files = (await response.json()) || [];
       } else {
         console.error('Fehler beim Laden der Dateien');
       }
@@ -100,25 +83,33 @@
 
   async function deleteSelected() {
     try {
-      const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/api/files`, {
-        method: 'DELETE',
-        body: JSON.stringify({ids: selected.map(item => item.id)}),
-        headers: {'Content-Type': 'application/json'}
-      });
-      if (response.ok) {
-        selected = [];
-        alert('Dateien erfolgreich gelöscht.');
-      } else {
-        console.error('Fehler beim Löschen der Dateien');
+      for (const item of selected) {
+        const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/assets/${item.id}`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' }
+        });
+
+        if (!response.ok) {
+          console.error(`Fehler beim Löschen der Datei mit ID: ${item.id}`);
+        }
       }
+
+      selected = [];
+      loadFiles();
     } catch (error) {
       console.error('Fehler beim Löschen der Dateien', error);
     }
     showDeleteConfirmation = false;
   }
 
+  function handleSelectFolder(folder: Folder): void {
+    selectedFolder = folder;
+    selected = [];
+    opened = null;
+    loadFiles();
+  }
+
   loadFiles();
-  loadFolders();
 </script>
 
 <div class="min-h-screen p-6 font-sans">
@@ -143,16 +134,12 @@
             </div>
         {/if}
 
-        <div class="w-1/6 min-w-xs mb-4">
-            <h2 class="text-2xl font-bold mb-6">Ordner</h2>
-
-            <TreeView
-                    tree={rootFolder}
-                    selected={selectedFolder}
-                    onSelect={(folder) => {
-                        selectedFolder = folder;
-                        loadFiles();
-                    }}
+        <div class="w-1/6 min-w-xs mb-8">
+            <FolderPanel
+                onSelect={(folder) => {
+                    handleSelectFolder(folder);
+                }}
+                selectedFolder={selectedFolder}
             />
         </div>
 
