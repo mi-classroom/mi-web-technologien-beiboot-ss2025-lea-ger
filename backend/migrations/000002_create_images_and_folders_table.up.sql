@@ -1,9 +1,12 @@
-CREATE TABLE folders (
-                         id   SERIAL PRIMARY KEY,
-                         name TEXT NOT NULL UNIQUE
+CREATE TABLE folders
+(
+    id   SERIAL PRIMARY KEY,
+    name TEXT NOT NULL UNIQUE
 );
 
-ALTER TABLE images
-    ADD COLUMN folder_id INTEGER REFERENCES folders(id) ON DELETE SET NULL;
+INSERT INTO folders (id, name)
+VALUES (0, 'root');
 
-INSERT INTO folders (id, name) VALUES (0, 'root');
+ALTER TABLE images
+    ADD COLUMN folder_id INTEGER NOT NULL DEFAULT 0 REFERENCES folders (id) ON DELETE SET DEFAULT;
+
