@@ -5,6 +5,12 @@ export type FileItem = {
   id: number;
 };
 
+export type Folder = {
+  id: number;
+  name: string;
+  children?: Folder[];
+}
+
 const IPTC_TAGS_XML_PATH = '/iptc-tags.xml';
 
 export type IPTCTag = {

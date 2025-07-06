@@ -2,8 +2,10 @@
   import UploadBox from '@/components/UploadBox.svelte';
   import FileListItem from '@/components/FileListItem.svelte';
   import MetadataPanel from '@/components/MetadataPanel.svelte';
-  import type {FileItem} from "@/utils.js";
+  import type {FileItem, Folder} from "@/utils.js";
   import BulkEditor from "@/components/BulkEditor.svelte";
+  import TreeView from "@/components/TreeView.svelte";
+
 
   let files: FileItem[] = [];
   let selected: FileItem[] = [];
@@ -11,6 +13,13 @@
   let showUploadModal = false;
   let showEditModal = false;
   let showDeleteConfirmation = false;
+
+  let rootFolder: Folder = {
+    id: 0,
+    name: '/',
+  };
+
+  let selectedFolder: Folder | null = rootFolder;
 
   $: isSelected = selected.length > 0;
   $: indeterminate = selected.length > 0 && selected.length < files.length;
@@ -55,6 +64,19 @@
     await loadFiles();
   }
 
+  async function loadFolders(): Promise<void> {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/api/folders`);
+      if (response.ok) {
+        rootFolder.children = await response.json();
+      } else {
+        console.error('Fehler beim Laden der Ordner');
+      }
+    } catch (error) {
+      console.error('Fehler beim Laden der Ordner', error);
+    }
+  }
+
   async function loadFiles(): Promise<void> {
     try {
       const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/api/metadata`);
@@ -96,6 +118,7 @@
   }
 
   loadFiles();
+  loadFolders();
 </script>
 
 <div class="min-h-screen p-6 font-sans">
@@ -119,6 +142,19 @@
                 </div>
             </div>
         {/if}
+
+        <div class="w-1/6 min-w-xs mb-4">
+            <h2 class="text-2xl font-bold mb-6">Ordner</h2>
+
+            <TreeView
+                    tree={rootFolder}
+                    selected={selectedFolder}
+                    onSelect={(folder) => {
+                        selectedFolder = folder;
+                        loadFiles();
+                    }}
+            />
+        </div>
 
         <div class="flex-1">
             <div class="lg:w-full xl:flex-1 mb-4">
