@@ -1,5 +1,6 @@
 <script lang="ts">
   import type {IPTCTag} from '@/utils.js';
+  import {scale} from 'svelte/transition';
 
   export let keyName: string;
   export let value: string;
@@ -11,7 +12,13 @@
 
 <div class="flex items-center justify-between py-2 gap-2">
   <span class="font-semibold flex items-center gap-1">
-    {keyName}
+        <div class="indicator">
+            {#if originalValue && value !== originalValue}
+            <span transition:scale
+                   class="indicator-item status status-warning" />
+            {/if}
+            <span class="pr-1">{keyName}</span>
+        </div>
   </span>
     <span class="flex-1 text-right">
     {#if tag && tag.writable}
@@ -33,11 +40,6 @@
       {value}
     {/if}
   </span>
-    {#if originalValue && value !== originalValue}
-        <div class="indicator">
-            <span class="indicator-item badge badge-warning"></span>
-        </div>
-    {/if}
     {#if onRemove}
         <button class="btn btn-sm btn-error" on:click={() => onRemove(keyName)}>
             <span class="material-symbols-outlined">delete</span>
