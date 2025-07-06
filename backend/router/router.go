@@ -115,23 +115,74 @@ func SetupRouter() *gin.Engine {
 		c.JSON(200, images)
 	})
 
+	r.GET("/api/folders", func(c *gin.Context) {
+		folders, err := db.GetAllFolders()
+		if err != nil {
+			c.JSON(500, gin.H{"message": "internal server error", "error": err.Error()})
+			return
+		}
+		c.JSON(200, folders)
+	})
+
+	r.POST("/api/folders", func(c *gin.Context) {
+		var folder db.Folder
+		if err := c.ShouldBindJSON(&folder); err != nil {
+			c.JSON(400, gin.H{"message": "invalid request body"})
+			return
+		}
+		if folder.Name == "" {
+			c.JSON(400, gin.H{"message": "folder name cannot be empty"})
+			return
+		}
+		id, err := db.GetOrCreateFolder(folder.Name)
+		if err != nil {
+			c.JSON(500, gin.H{"message": "internal server error", "error": err.Error()})
+			return
+		}
+		c.JSON(200, gin.H{"id": id})
+	})
+
 	r.POST("/assets", func(c *gin.Context) {
 		file, err := c.FormFile("file")
 		if err != nil {
 			c.JSON(400, gin.H{"message": "invalid file"})
 			return
 		}
-		id, err := db.AddImage(file.Filename)
+		folderIDStr := c.PostForm("folder_id")
+		folderId, err := strconv.Atoi(folderIDStr)
+		if err != nil {
+			folderId = 0
+		}
+		id, err := db.AddImage(file.Filename, folderId)
 		if err != nil {
 			c.JSON(500, gin.H{"message": "internal server error"})
 			return
 		}
-		err = c.SaveUploadedFile(file, filepath.Join("assets", file.Filename))
+		targetDir := "assets"
+		if folderId != 0 {
+			folder, err := db.GetFolderByID(folderId)
+			if err != nil {
+				c.JSON(500, gin.H{"message": "internal server error"})
+				return
+			}
+			targetDir = filepath.Join("assets", folder.Name)
+			err = os.MkdirAll(targetDir, os.ModePerm)
+			if err != nil {
+				c.JSON(500, gin.H{"message": "could not create folder"})
+				return
+			}
+		}
+		targetPath := filepath.Join(targetDir, file.Filename)
+		err = c.SaveUploadedFile(file, targetPath)
 		if err != nil {
 			c.JSON(500, gin.H{"message": "internal server error"})
 			return
 		}
-		c.JSON(200, gin.H{"id": id})
+		response := gin.H{"id": id}
+		if folderId != 0 {
+			response["folder_id"] = folderId
+		}
+		c.JSON(200, response)
 	})
 
 	return r
@@ -170,7 +221,17 @@ func getFileById(id string) (string, error) {
 		return "", apperrors.ErrImageNotFound
 	}
 
-	path := filepath.Join("assets", image.Filepath)
+	folderName := ""
+	if image.FolderID != 0 {
+		row := db.DB.QueryRow("SELECT name FROM folders WHERE id = $1", image.FolderID)
+		_ = row.Scan(&folderName)
+	}
+	var path string
+	if folderName != "" {
+		path = filepath.Join("assets", folderName, image.Filepath)
+	} else {
+		path = filepath.Join("assets", image.Filepath)
+	}
 	if _, err := os.Stat(path); err != nil {
 		if os.IsNotExist(err) {
 			return "", apperrors.ErrFileNotFound

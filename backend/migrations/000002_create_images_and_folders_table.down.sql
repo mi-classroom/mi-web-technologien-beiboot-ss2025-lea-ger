@@ -1,0 +1,8 @@
+ALTER TABLE images
+DROP CONSTRAINT IF EXISTS images_folder_id_fkey;
+
+ALTER TABLE images
+DROP COLUMN IF EXISTS folder_id;
+
+DROP TABLE IF EXISTS folders;
+

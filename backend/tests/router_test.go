@@ -130,3 +130,73 @@ func TestPostMetadata(t *testing.T) {
 
 	assert.Equal(t, response["Source"], "KIKA Studios")
 }
+
+func TestUploadImageWithFolder(t *testing.T) {
+	server := setup()
+
+	folderName := "Testordner"
+	folderBody := bytes.NewBufferString(`{"name": "` + folderName + `"}`)
+	req, _ := http.NewRequest("POST", "/api/folders", folderBody)
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	server.ServeHTTP(w, req)
+	assert.Equal(t, 200, w.Code)
+
+	var folderResp map[string]interface{}
+	err := json.Unmarshal(w.Body.Bytes(), &folderResp)
+	assert.NoError(t, err)
+	folderID := int(folderResp["id"].(float64))
+
+	file, err := os.Open("data/IPTC-PhotometadataRef-Std2024.1.jpg")
+	assert.NoError(t, err)
+	defer file.Close()
+
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+	_, err = writer.CreateFormFile("file", "IPTC-PhotometadataRef-Std2024.1.jpg")
+	assert.NoError(t, err)
+	file.Seek(0, 0)
+	io.Copy(body, file)
+	writer.WriteField("folder_id", fmt.Sprintf("%d", folderID))
+	writer.Close()
+
+	req, err = http.NewRequest("POST", "/assets", body)
+	assert.NoError(t, err)
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	w = httptest.NewRecorder()
+	server.ServeHTTP(w, req)
+	assert.Equal(t, 200, w.Code)
+
+	var response map[string]interface{}
+	err = json.Unmarshal(w.Body.Bytes(), &response)
+	assert.NoError(t, err)
+	assert.Equal(t, float64(folderID), response["folder_id"])
+}
+
+func TestUploadImageWithoutFolder(t *testing.T) {
+	server := setup()
+	file, err := os.Open("data/IPTC-PhotometadataRef-Std2024.1.jpg")
+	assert.NoError(t, err)
+	defer file.Close()
+
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+	_, err = writer.CreateFormFile("file", "IPTC-PhotometadataRef-Std2024.1.jpg")
+	assert.NoError(t, err)
+	file.Seek(0, 0)
+	io.Copy(body, file)
+	writer.Close()
+
+	req, err := http.NewRequest("POST", "/assets", body)
+	assert.NoError(t, err)
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	w := httptest.NewRecorder()
+	server.ServeHTTP(w, req)
+	assert.Equal(t, 200, w.Code)
+
+	var response map[string]interface{}
+	err = json.Unmarshal(w.Body.Bytes(), &response)
+	assert.NoError(t, err)
+	_, hasFolder := response["folder_id"]
+	assert.False(t, hasFolder)
+}
