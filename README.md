@@ -17,7 +17,24 @@ ___
 
 ## Running the project
 
-### Backend (using Go)
+### Using Docker (preferred)
+1. Install Docker
+2. Execute the following command in the root directory of the project:
+   ```bash
+   docker-compose up
+   ```
+   or, for just starting the backend server (if you want to run the frontend manually):
+    ```bash
+    docker-compose up backend
+    ```
+3. The backend will be available at `http://localhost:8080` and the frontend at `http://localhost:4173`
+4. Run migrations:
+   ```bash
+   docker exec -it <backend-container-name> go run main.go --migrate
+   ```
+
+### Manual Setup
+#### Backend (using Go)
 1. Install go (ver. 1.24)
 2. Go to "backend" folder
 3. Install dependencies
@@ -29,7 +46,7 @@ ___
     go run main.go
     ```
    
-### Frontend (Bun or NPM)
+#### Frontend (Bun or NPM)
 1. Install Bun
 2. Go to "frontend" folder
 3. Install dependencies
@@ -43,12 +60,4 @@ ___
 5. Run the frontend
    ```bash
    bun dev
-   ```
-
-   
-### Using Docker
-1. Install Docker
-2. Execute the following command in the root directory of the project:
-   ```bash
-   docker-compose up
    ```

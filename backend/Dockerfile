@@ -15,7 +15,7 @@ COPY . .
 
 RUN GOOS=linux GOARCH=amd64 go build -o server .
 
-FROM alpine:latest
+FROM golang:1.24-alpine
 
 WORKDIR /app
 
