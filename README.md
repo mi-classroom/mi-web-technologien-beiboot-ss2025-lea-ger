@@ -29,6 +29,23 @@ ___
     go run main.go
     ```
    
+### Frontend (Bun or NPM)
+1. Install Bun
+2. Go to "frontend" folder
+3. Install dependencies
+```bash
+   bun install
+```
+4. Copy the `.env.example` file to `.env` and adjust the variables if needed
+   ```bash
+   cp .env.example .env
+   ```
+5. Run the frontend
+   ```bash
+   bun dev
+   ```
+
+   
 ### Using Docker
 1. Install Docker
 2. Execute the following command in the root directory of the project:
