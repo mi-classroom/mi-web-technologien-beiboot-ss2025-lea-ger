@@ -26,5 +26,17 @@ services:
       - DB_HOST=postgres
     restart: unless-stopped
 
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    depends_on:
+      - backend
+    ports:
+      - "4173:4173"
+    environment:
+        - VITE_APP_API_URL=http://localhost:8080
+    restart: unless-stopped
+
 volumes:
   postgres_data:

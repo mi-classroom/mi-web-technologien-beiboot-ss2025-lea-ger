@@ -1,8 +1,10 @@
 <script lang="ts">
   import type {FileItem, IPTCTag} from "@/utils.js";
-  import {onMount} from 'svelte';
   import {getAllTags} from '@/utils.js';
+  import {onMount} from 'svelte';
   import MetadataField from './MetadataField.svelte';
+  import TagSelector from '@/components/TagSelector.svelte';
+  import Toast from '@/components/Toast.svelte';
 
   export let selected: FileItem;
 
@@ -14,6 +16,10 @@
   let hasChanges = false;
   let loading = true;
   let collapseOpen = false;
+  let saving = false;
+  let toastOpen = false;
+  let toastMsg = '';
+  let toastType: 'success' | 'error' | 'info' | 'warning' = 'info';
 
   async function fetchMetadata(): Promise<void> {
     try {
@@ -40,8 +46,49 @@
     hasChanges = Object.keys(editableMetadata).some(k => editableMetadata[k] !== originalMetadata?.[k]);
   }
 
+  function onRemove(key: string) {
+    const { [key]: _, ...rest } = editableMetadata;
+    editableMetadata = rest;
+    hasChanges = true;
+  }
+
   function getTag(tagName: string): IPTCTag | undefined {
     return iptcTags.find(t => t.name === tagName);
+  }
+
+  async function addTag(tagName: string) {
+    if (!editableMetadata[tagName]) {
+      editableMetadata = { ...editableMetadata, [tagName]: '' };
+      hasChanges = true;
+    }
+  }
+
+  async function saveTags(): Promise<void> {
+    saving = true;
+    try {
+      const response = await fetch(`${apiUrl}/api/metadata/${selected.id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editableMetadata),
+      });
+      if (response.ok) {
+        originalMetadata = { ...editableMetadata };
+        hasChanges = false;
+        toastType = 'success';
+        toastMsg = 'Metadaten erfolgreich gespeichert';
+        toastOpen = true;
+      } else {
+        toastType = 'error';
+        toastMsg = 'Speichern der Metadaten fehlgeschlagen';
+        toastOpen = true;
+      }
+    } catch (error) {
+      toastType = 'error';
+      toastMsg = 'Speichern der Metadaten fehlgeschlagen';
+      toastOpen = true;
+    } finally {
+      saving = false;
+    }
   }
 
   onMount(async () => {
@@ -51,8 +98,17 @@
 </script>
 
 <div class="border border-primary p-4 bg-base-100 rounded-sm">
-    <button class="btn btn-primary mb-4" disabled={!hasChanges}>Speichern</button>
-    <div class="mb-4">
+    <div class="flex z-10 justify-end items-center sticky top-0 bg-base-100 py-4">
+        <button
+                class="btn btn-primary"
+                disabled={!hasChanges}
+                class:loading={saving}
+                on:click={saveTags}
+        >
+            Speichern
+        </button>
+    </div>
+    <div>
         <img src={`${apiUrl}/assets/${selected?.id}`}
              alt="Preview"
              class="w-full object-contain rounded border"
@@ -63,7 +119,13 @@
         <p class="text-gray-500">Lade Metadaten...</p>
     {:else if fileMetadata}
         <div class="text-sm divide-y">
-            {#each Object.entries(editableMetadata) as [key, value]}
+            <TagSelector
+                    label="Tag hinzufügen"
+                    excludedTags={Object.keys(editableMetadata)}
+                    onSelect={addTag}
+            />
+
+            {#each Object.entries(editableMetadata) as [key, value] (key)}
                 {#if iptcTags.some(tag => tag.name === key)}
                     <MetadataField
                             keyName={key}
@@ -71,17 +133,18 @@
                             originalValue={originalMetadata ? originalMetadata[key] : ''}
                             tag={getTag(key)}
                             onEdit={onEdit}
+                            onRemove={onRemove}
                     />
                 {/if}
             {/each}
 
             <div class="collapse collapse-arrow border border-base-300 bg-base-100 rounded-box mt-4">
-                <input type="checkbox" bind:checked={collapseOpen} />
+                <input type="checkbox" bind:checked={collapseOpen}/>
                 <div class="collapse-title">
                     Nicht-IPTC-Tags
                 </div>
                 <div class="collapse-content">
-                    {#each Object.entries(editableMetadata) as [key, value]}
+                    {#each Object.entries(editableMetadata) as [key, value] (key)}
                         {#if !iptcTags.some(tag => tag.name === key)}
                             <MetadataField
                                     keyName={key}
@@ -99,3 +162,5 @@
         <p class="text-gray-500">Keine Metadaten gefunden.</p>
     {/if}
 </div>
+
+<Toast message={toastMsg} type={toastType} bind:open={toastOpen} duration={3000} />

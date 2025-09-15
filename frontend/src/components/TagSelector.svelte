@@ -1,21 +1,24 @@
 <script lang="ts">
-    import {getAllTags} from "@/utils.js";
-    import {onMount} from "svelte";
-    import type {IPTCTag} from "@/utils.js";
+  import type {IPTCTag} from "@/utils.js";
+  import {getAllTags} from "@/utils.js";
+  import {onMount} from "svelte";
 
-    export let label: string;
-    export let onSelect: (tag: string) => void;
-    let iptcTags: IPTCTag[] = [];
-    let selectedTag: string | null = null;
+  export let label: string;
+  export let onSelect: (tag: string) => void;
+  export let excludedTags: string[] = [];
 
-    async function loadTags() {
-        iptcTags = await getAllTags();
-    }
+  let iptcTags: IPTCTag[] = [];
+  let selectedTag: string | null = null;
 
-    onMount(loadTags);
+  async function loadTags() {
+    iptcTags = (await getAllTags())
+      .filter(tag => !excludedTags.includes(tag.name));
+  }
+
+  onMount(loadTags);
 </script>
 
-<div class="form-control flex gap-2 items-center mt-4">
+<div class="form-control flex gap-2 justify-end items-center py-4">
     <label class="label">
         <span class="label-text">{label}</span>
     </label>

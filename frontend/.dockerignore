@@ -1,0 +1,9 @@
+node_modules
+.git
+.svelte-kit
+dist
+bun.lockb
+npm-debug.log
+yarn-error.log
+Dockerfile
+.dockerignore
