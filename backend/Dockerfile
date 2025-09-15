@@ -8,10 +8,10 @@ RUN apk add --no-cache git
 
 COPY go.mod go.sum ./
 RUN go mod download
+RUN go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+
 
 COPY . .
-
-RUN migrate -path ./migrations -database "postgres://admin:admin@localhost:5432/iptc-editor?sslmode=disable" up
 
 RUN GOOS=linux GOARCH=amd64 go build -o server .
 
@@ -26,4 +26,4 @@ RUN chmod +x ./server
 
 EXPOSE 8080
 
-CMD ["./server", "-bind", "0.0.0.0:8080"]
+CMD ["./server"]
