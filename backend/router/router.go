@@ -88,7 +88,11 @@ func SetupRouter() *gin.Engine {
 		})
 		api.GET("/assets/:imageId", func(c *gin.Context) {
 			id := c.Param("imageId")
-			file, _ := getFileById(id)
+			file, err := getFileById(id)
+			if err != nil {
+				print(err.Error())
+				c.JSON(500, gin.H{"message": err.Error()})
+			}
 			c.File(file)
 		})
 		api.DELETE("/assets/:imageId", func(c *gin.Context) {
@@ -235,6 +239,7 @@ func getFileById(id string) (string, error) {
 	if image == nil || image.Filepath == "" {
 		return "", apperrors.ErrImageNotFound
 	}
+	print(image.Filepath)
 
 	folderName := ""
 	if image.FolderId != 0 {
