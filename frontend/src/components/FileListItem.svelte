@@ -37,7 +37,8 @@
 </script>
 
 <div
-        on:click={() => onSelect()}
+        on:click={() => onEdit()}
+        on:dblclick={() => onSelect()}
         class={["list-row flex items-center space-x-2 rounded-sm border cursor-pointer shadow-sm hover:shadow transition-all duration-200",
             isOpen ? "bg-primary/20" : "bg-base-100  dark:bg-dark",
             isSelected ? "border-primary selected" : ""
