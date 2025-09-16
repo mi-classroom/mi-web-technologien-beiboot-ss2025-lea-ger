@@ -1,6 +1,6 @@
 <script lang="ts">
   import type {FileItem, IPTCTag} from "@/utils.js";
-  import {getAllTags} from '@/utils.js';
+  import {getAllTags, mostRelevantIPTCTags} from '@/utils.js';
   import {onMount} from 'svelte';
   import MetadataField from './MetadataField.svelte';
   import TagSelector from '@/components/TagSelector.svelte';
@@ -91,6 +91,11 @@
     }
   }
 
+  $: relevantTagNames = mostRelevantIPTCTags.map(t => t.name);
+  $: relevantTotal = mostRelevantIPTCTags.length;
+  $: relevantFilled = relevantTagNames.filter(name => !!editableMetadata[name] && editableMetadata[name].toString().trim() !== '').length;
+  $: relevantPercent = Math.round((relevantFilled / relevantTotal) * 100);
+
   onMount(async () => {
     await fetchMetadata();
     await loadTags();
@@ -108,6 +113,7 @@
             Speichern
         </button>
     </div>
+
     <div>
         <img src={`${apiUrl}/assets/${selected?.id}`}
              alt="Preview"
@@ -118,7 +124,16 @@
     {#if loading}
         <p class="text-gray-500">Lade Metadaten...</p>
     {:else if fileMetadata}
+
         <div class="text-sm divide-y">
+            <div class="py-4">
+                <label class="block mb-1 text-sm font-semibold text-gray-700">
+                    Wichtige Tags befüllt: {relevantFilled} / {relevantTotal}
+                </label>
+                <progress class="progress progress-primary w-full" value={relevantFilled} max={relevantTotal}></progress>
+                <div class="text-xs text-right text-gray-500">{relevantPercent}%</div>
+            </div>
+
             <TagSelector
                     label="Tag hinzufügen"
                     excludedTags={Object.keys(editableMetadata)}

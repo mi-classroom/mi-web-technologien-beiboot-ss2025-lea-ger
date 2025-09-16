@@ -24,7 +24,7 @@ export type IPTCTag = {
   relevant?: boolean;
 };
 
-const mostRelevantIPTCTags = [
+export const mostRelevantIPTCTags = [
   {tag: "00", name: "Record Version", description: "Mandatory / The current IPTC Information Interchange Model = 4"},
   {tag: "03", name: "ObjectType", description: "Object Type Reference. 1:News, 2:Data, 3:Advisory x:yy"},
   {

@@ -12,7 +12,12 @@
 
   async function loadTags() {
     iptcTags = (await getAllTags())
-      .filter(tag => !excludedTags.includes(tag.name));
+      .filter(tag => !excludedTags.includes(tag.name))
+      .sort((a, b) => {
+        if ((a.relevant && !b.relevant)) return -1;
+        if ((!a.relevant && b.relevant)) return 1;
+        return a.name.localeCompare(b.name);
+      });
   }
 
   onMount(loadTags);
@@ -24,7 +29,7 @@
     </label>
     <select bind:value={selectedTag} class="select select-bordered">
         {#each iptcTags as tag}
-            <option value={tag.name}>{tag.name}</option>
+            <option value={tag.name}>{tag.name}{tag.relevant ? ' (!)' : ''}</option>
         {/each}
     </select>
     <button class="btn btn-primary" on:click={() => {
