@@ -26,8 +26,9 @@
   - [x] Autocompletion (Dynamic field types?) | 4 hrs
   - [x] Progress/Completion bar | 1 hr
 - [x] Fully implement bulk editing functionality | 2 hrs
-- [x] Implement macro functionality | 2 hrs
+- [x] Implement macro functionality | 4 hrs
 
 ## Task 6
-- [] Update Dockerfiles and docker-compose to use multi-stage builds
-- [] Documentation of the project setup and how to run it
+- [] Update Dockerfiles and docker-compose to use multi-stage builds | 2 hrs
+  - Note: The virtualization is, at time of writing, not working for the frontend
+- [x] Documentation of the project setup and how to run it | 1 hrs
