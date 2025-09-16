@@ -14,9 +14,18 @@
 
   let newListItem = '';
   let dateInputValue = '';
+  let selectValue = typeof value === 'string' ? value : (Array.isArray(value) ? value[0] : '');
 
   $: if (tag && dateFields.includes(tag.name)) {
     dateInputValue = parseOutDate(value as string);
+  }
+
+  $: if (tag?.values) {
+    if (tag.type === 'digits' || tag.type === 'int16u' || tag.type === 'int8u' || tag.type === 'int32u') {
+      selectValue = parseInt(value);
+    } else {
+      selectValue = value
+    }
   }
 
   const parseOutDate = (dateStr: string): string => {
@@ -34,6 +43,11 @@
     const [year, month, day] = date.split('-');
     return `${year}:${month}:${day} ${time}+00:00`;
   };
+
+  function parseSelectValue(e: Event) {
+    const v = (e.target as HTMLSelectElement).value;
+    onEdit(keyName, v);
+  }
 
   function addListItem() {
     if (!newListItem.trim()) return;
@@ -106,12 +120,14 @@
               </div>
             </div>
         {:else if tag.values}
-            <select class="select select-bordered w-full max-w-xs" bind:value={value}
-                    on:change={e => onEdit(keyName, e.target?.value)}>
+            <select class="select select-bordered w-full max-w-xs"
+                    bind:value={selectValue}
+                    on:change={parseSelectValue}
+            >
               {#each tag.values as opt}
-                <option value={opt.id}>{opt.value}</option>
+                <option value={parseInt(opt.id)}>{opt.value}</option>
               {/each}
-         </select>
+            </select>
         {:else if tag.type === 'digits' || tag.type === 'int16u' || tag.type === 'int8u' || tag.type === 'int32u'}
           <input type="number" class="input input-bordered w-full max-w-xs" bind:value={value}
                  on:input={e => onEdit(keyName, e.target?.value)}/>
