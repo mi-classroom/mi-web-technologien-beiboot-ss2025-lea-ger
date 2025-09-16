@@ -15,6 +15,43 @@ Halten Sie die Anwendung, gerade in der Anfangsphase möglichst einfach, schlank
 
 ___
 
+# IPTC Editor
+A simple web application to view and edit IPTC metadata in images, written in Go (backend) and Svelte + TypeScript (frontend).
+
+## Structure
+
+### Backend (`/backend`)
+- **Language:** Go, Gin Framework
+- **Purpose:** Provides a REST API for reading and editing IPTC metadata in images. Handles image file management and metadata persistence (e.g., via SQLite).
+- **Key folders:**
+  - `assets/`: Where the actual files are stored
+  - `db/`: Database models and queries
+  - `router/`: API routing and endpoints
+  - `migrate/` & `migrations/`: Database migrations
+  - `errors/`: Error types
+
+### Frontend (`/frontend`)
+- **Technologies:** Svelte, TypeScript, Vite
+- **Purpose:** User interface for viewing and editing IPTC metadata. Communicates with the backend via HTTP.
+- **Key folders and files:**
+  - `src/components/`: UI components (e.g., metadata editor, file list, bulk editor)
+  - `src/routes/`: SvelteKit routes for the page structure (unused as there is only one page)
+  - `src/utils.ts`: Utility functions (e.g., API calls, date formatting)
+  - `static/`: Static public files (i.e., Favicon and IPTC tag definitions)
+
+### Communication
+- The frontend communicates with the backend REST API to load and save metadata.
+- Metadata is transferred as JSON between frontend and backend.
+
+### Data Model
+- Each image has a unique ID and a set of IPTC metadata fields.
+- Files and folders are stored in the filesystem as well as the database.
+- Metadata is read directly from image files using `exiftool` library.
+
+### Development & Deployment
+- **Docker:** Docker containers are provided for local development and deployment.
+- **Migrations:** Database schema is versioned using migrations.
+
 ## Running the project
 
 ### Using Docker (preferred)
