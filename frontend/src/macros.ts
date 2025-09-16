@@ -45,6 +45,10 @@ function uuid(): string {
   );
 }
 
+export function hasMacros() : boolean {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  return raw && raw.length > 2; // at least "[]"
+}
 
 export function listMacros(): Macro[] {
   return loadAll();

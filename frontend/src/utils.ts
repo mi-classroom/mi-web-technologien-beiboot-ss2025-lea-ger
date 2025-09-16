@@ -252,3 +252,16 @@ export async function getTagOptions(tagName: string): Promise<{ id: string; valu
   const tag = tags.find(t => t.name === tagName);
   return tag?.values;
 }
+
+export async function loadFilesInFolder(folderId: string | number): Promise<void> {
+  try {
+    const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/api/metadata?folder_id=${folderId}`);
+    if (response.ok) {
+      return (await response.json()) || [];
+    } else {
+      console.error('Fehler beim Laden der Dateien');
+    }
+  } catch (error) {
+    console.error('Fehler beim Laden der Dateien', error);
+  }
+}

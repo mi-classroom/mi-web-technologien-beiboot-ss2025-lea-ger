@@ -37,8 +37,8 @@
             {name}
         </span>
           <TreeViewFolderActions
-              folderName={name}
-              folderId={tree.id}
+                  folderName={name}
+                  folderId={tree.id}
           />
       </span>
             {#if expanded}
