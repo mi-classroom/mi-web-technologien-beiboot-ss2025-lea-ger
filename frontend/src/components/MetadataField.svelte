@@ -14,7 +14,7 @@
 
   let newListItem = '';
   let dateInputValue = '';
-  let selectValue = typeof value === 'string' ? value : (Array.isArray(value) ? value[0] : '');
+  let selectValue: string | number | null | undefined = typeof value === 'string' ? value : (Array.isArray(value) ? value[0] : '');
 
   $: if (tag && dateFields.includes(tag.name)) {
     dateInputValue = parseOutDate(value as string);
@@ -22,10 +22,11 @@
 
   $: if (tag?.values) {
     if (tag.type === 'digits' || tag.type === 'int16u' || tag.type === 'int8u' || tag.type === 'int32u') {
-      selectValue = parseInt(value);
+      selectValue = value ? parseInt(value) : value;
     } else {
       selectValue = value
     }
+    console.log(selectValue);
   }
 
   const parseOutDate = (dateStr: string): string => {

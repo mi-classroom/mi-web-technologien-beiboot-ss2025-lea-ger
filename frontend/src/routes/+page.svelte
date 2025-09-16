@@ -12,7 +12,7 @@
   let showUploadModal = false;
   let showEditModal = false;
   let showDeleteConfirmation = false;
-  let selectedFolder: {id: number, name: string} | null = null;
+  let selectedFolder: { id: number, name: string } | null = null;
 
   $: isSelected = selected.length > 0;
   $: indeterminate = selected.length > 0 && selected.length < files.length;
@@ -86,7 +86,7 @@
       for (const item of selected) {
         const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/assets/${item.id}`, {
           method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' }
+          headers: {'Content-Type': 'application/json'}
         });
 
         if (!response.ok) {
@@ -107,6 +107,11 @@
     selected = [];
     opened = null;
     loadFiles();
+  }
+
+  async function handleBulkUpdate() {
+    opened = null;
+    await loadFiles();
   }
 
   loadFiles();
@@ -136,10 +141,10 @@
 
         <div class="w-1/6 min-w-xs mb-8">
             <FolderPanel
-                onSelect={(folder) => {
+                    onSelect={(folder) => {
                     handleSelectFolder(folder);
                 }}
-                selectedFolder={selectedFolder}
+                    selectedFolder={selectedFolder}
             />
         </div>
 
@@ -207,7 +212,12 @@
         </div>
 
         {#if showEditModal}
-            <BulkEditor bind:show={showEditModal} onClose={() => showEditModal = false} {selected}/>
+            <BulkEditor
+                    bind:show={showEditModal}
+                    onClose={() => showEditModal = false}
+                    onUpdated={handleBulkUpdate}
+                    {selected}
+            />
         {/if}
 
         {#if showDeleteConfirmation}
