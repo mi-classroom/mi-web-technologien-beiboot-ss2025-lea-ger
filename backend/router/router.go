@@ -204,6 +204,21 @@ func SetupRouter() *gin.Engine {
 		c.JSON(200, response)
 	})
 
+	r.DELETE("/api/folders/:id", func(c *gin.Context) {
+		idStr := c.Param("id")
+		id, err := strconv.Atoi(idStr)
+		if err != nil {
+			c.JSON(400, gin.H{"message": "invalid folder id"})
+			return
+		}
+		err = db.DeleteFolderByID(id)
+		if err != nil {
+			c.JSON(500, gin.H{"message": "internal server error", "error": err.Error()})
+			return
+		}
+		c.JSON(200, gin.H{"success": true})
+	})
+
 	return r
 }
 

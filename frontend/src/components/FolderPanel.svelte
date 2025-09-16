@@ -66,5 +66,6 @@
             onSelect={(folder) => {
                 onSelect(folder)
             }}
+            folderDeleted={loadFolders}
     />
 {/key}

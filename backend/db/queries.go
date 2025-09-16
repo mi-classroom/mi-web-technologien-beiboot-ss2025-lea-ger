@@ -141,3 +141,13 @@ func GetImagesByFolderID(folderID int) ([]Image, error) {
 	}
 	return images, nil
 }
+
+func DeleteFolderByID(id int) error {
+	query := `DELETE FROM folders WHERE id = $1`
+	_, err := DB.Exec(query, id)
+	if err != nil {
+		log.Printf("Error deleting folder: %v", err)
+		return err
+	}
+	return nil
+}
