@@ -5,6 +5,8 @@
   import type {FileItem, Folder} from "@/utils.js";
   import BulkEditor from "@/components/BulkEditor.svelte";
   import FolderPanel from "@/components/FolderPanel.svelte";
+  import Toast from "@/components/Toast.svelte";
+  import { listMacros, getMacro, applyMacroToItems } from "@/macros.ts";
 
   let files: FileItem[] = [];
   let selected: FileItem[] = [];
@@ -13,9 +15,22 @@
   let showEditModal = false;
   let showDeleteConfirmation = false;
   let selectedFolder: { id: number, name: string } | null = null;
+  let isMobile = false;
+  // Macro modal state
+  let showMacroModal = false;
+  let macroOptions: { id: string; name: string }[] = [];
+  let selectedMacroIndex: number = 0;
+  let runningMacro = false;
+  let macroError = '';
+  let macroProgressDone = 0;
+  let macroProgressTotal = 0;
+  let toastOpen = false;
+  let toastMsg = '';
+  let toastType: 'success' | 'error' | 'info' | 'warning' = 'info';
 
   $: isSelected = selected.length > 0;
   $: indeterminate = selected.length > 0 && selected.length < files.length;
+  $: macros = listMacros();
 
   /* Dummy files */
   files.push(
@@ -73,6 +88,64 @@
     }
   }
 
+  async function runMacroOnSelected() {
+    if (selected.length === 0) return;
+    const list = listMacros();
+    if (list.length === 0) {
+      alert('Keine gespeicherten Makros vorhanden.');
+      return;
+    }
+    macroOptions = list.map(m => ({ id: m.id, name: m.name }));
+    selectedMacroIndex = 0;
+    macroError = '';
+    macroProgressDone = 0;
+    macroProgressTotal = selected.length;
+    showMacroModal = true;
+  }
+
+  async function confirmRunMacro() {
+    if (selected.length === 0) { showMacroModal = false; return; }
+    if (!macroOptions.length) { macroError = 'Keine Makros vorhanden.'; return; }
+    const macroList = listMacros();
+    const idx = selectedMacroIndex;
+    if (idx < 0 || idx >= macroList.length) {
+      macroError = 'Ungültige Auswahl.';
+      return;
+    }
+    runningMacro = true;
+    try {
+      const macro = macroList[idx];
+      const res = await applyMacroToItems(selected, macro, (done, total) => {
+        macroProgressDone = done;
+        macroProgressTotal = total;
+      });
+      if (res.failed === 0) {
+        toastType = 'success';
+        toastMsg = `Makro ausgeführt. Erfolgreich: ${res.success}`;
+      } else if (res.success > 0) {
+        toastType = 'warning';
+        toastMsg = `Makro teilweise erfolgreich. Erfolgreich: ${res.success}, Fehlgeschlagen: ${res.failed}`;
+      } else {
+        toastType = 'error';
+        toastMsg = `Makro fehlgeschlagen.`;
+      }
+      toastOpen = true;
+      await loadFiles();
+      selected = [];
+      showMacroModal = false;
+    } catch (e) {
+      macroError = 'Fehler beim Ausführen des Makros.';
+    } finally {
+      runningMacro = false;
+    }
+  }
+
+  function cancelRunMacro() {
+    showMacroModal = false;
+    runningMacro = false;
+    macroError = '';
+  }
+
   function selectFile(file: FileItem): void {
     if (selected.map(it => it.id).includes(file.id)) {
       selected = selected.filter(it => it.id !== file.id);
@@ -112,6 +185,15 @@
   async function handleBulkUpdate() {
     opened = null;
     await loadFiles();
+  }
+
+  function updateIsMobile() {
+    isMobile = window.matchMedia('(max-width: 640px)').matches;
+  }
+
+  if (typeof window !== 'undefined') {
+    updateIsMobile();
+    window.addEventListener('resize', updateIsMobile);
   }
 
   loadFiles();
@@ -178,16 +260,55 @@
                         <h3 class="text-lg font-semibold">Ausgewählte Dateien ({selected.length})</h3>
                     </div>
 
-                    <div class="flex gap-4 mt-4">
-                        <button class="btn btn-error btn-sm" on:click={showDeleteConfirmation = true}
-                                disabled={selected.length === 0}>
-                            Löschen
-                        </button>
-                        <button class="btn btn-primary btn-sm" on:click={() => showEditModal = true}
-                                disabled={selected.length === 0}>
-                            Bearbeiten
-                        </button>
-                    </div>
+                    {#if !isMobile}
+                      <div class="flex gap-4 mt-4">
+                          <button class="btn btn-error btn-sm" on:click={showDeleteConfirmation = true}
+                                  disabled={selected.length === 0}>
+                              <span class="material-symbols-outlined">delete</span>
+                              Löschen
+                          </button>
+                          <button class="btn btn-primary btn-sm" on:click={() => showEditModal = true}
+                                  disabled={selected.length === 0}>
+                              <span class="material-symbols-outlined">edit</span>
+                              Bearbeiten
+                          </button>
+                          <button class="btn btn-secondary btn-sm" 
+                                  on:click={runMacroOnSelected}
+                                  disabled={selected.length === 0 || macros.length === 0}>
+                              <span class="material-symbols-outlined">play_arrow</span>
+                              Makro ausführen
+                          </button>
+                      </div>
+                    {:else}
+                      <div class="dropdown dropdown-end mt-4">
+                        <label tabindex="0" class="btn btn-primary btn-sm">
+                          <span class="material-symbols-outlined">more_vert</span>
+                        </label>
+                        <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52 z-50">
+                          <li>
+                            <button class="btn btn-error btn-sm w-full justify-start" on:click={showDeleteConfirmation = true}
+                                    disabled={selected.length === 0}>
+                              <span class="material-symbols-outlined">delete</span>
+                              Löschen
+                            </button>
+                          </li>
+                          <li>
+                            <button class="btn btn-primary btn-sm w-full justify-start" on:click={() => showEditModal = true}
+                                    disabled={selected.length === 0}>
+                              <span class="material-symbols-outlined">edit</span>
+                              Bearbeiten
+                            </button>
+                          </li>
+                          <li>
+                            <button class="btn btn-secondary btn-sm w-full justify-start" on:click={runMacroOnSelected}
+                                    disabled={selected.length === 0 || macros.length === 0}>
+                              <span class="material-symbols-outlined">play_arrow</span>
+                              Makro ausführen
+                            </button>
+                          </li>
+                        </ul>
+                      </div>
+                    {/if}
                 </div>
             </div>
             {#if files.length > 0}
@@ -220,6 +341,41 @@
             />
         {/if}
 
+        {#if showMacroModal}
+            <div class="modal modal-open">
+                <div class="modal-box">
+                    <h3 class="font-bold text-lg mb-2">Makro ausführen</h3>
+                    {#if macroOptions.length === 0}
+                        <p>Keine gespeicherten Makros vorhanden.</p>
+                    {:else}
+                        <label class="block mb-2">Wähle ein Makro:</label>
+                        <select class="select select-bordered w-full"
+                                bind:value={selectedMacroIndex}
+                        >
+                            {#each macroOptions as m, i}
+                                <option value={i}>{m.name}</option>
+                            {/each}
+                        </select>
+                        {#if macroError}
+                            <div class="text-error mt-2">{macroError}</div>
+                        {/if}
+                        {#if runningMacro}
+                          <div class="mt-4">
+                            <progress class="progress progress-secondary w-full" value={macroProgressDone} max={macroProgressTotal}></progress>
+                            <div class="text-xs text-right text-gray-500 mt-1">{macroProgressDone} / {macroProgressTotal} verarbeitet</div>
+                          </div>
+                        {/if}
+                    {/if}
+                    <div class="modal-action">
+                        <button class="btn" on:click={cancelRunMacro} disabled={runningMacro}>Abbrechen</button>
+                        <button class="btn btn-secondary" on:click={confirmRunMacro} disabled={runningMacro || macroOptions.length === 0}>
+                            {runningMacro ? 'Wird ausgeführt...' : 'Makro ausführen'}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        {/if}
+
         {#if showDeleteConfirmation}
             <div class="modal modal-open">
                 <div class="modal-box">
@@ -240,3 +396,5 @@
         {/if}
     </div>
 </div>
+
+<Toast message={toastMsg} type={toastType} bind:open={toastOpen} duration={3000} />

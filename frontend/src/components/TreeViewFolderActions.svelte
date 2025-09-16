@@ -5,7 +5,6 @@
 
   $: canDelete = !!onDelete;
 
-  let showActions = false;
   let showConfirm = false;
   let deleting = false;
   let errorMsg = '';
@@ -16,7 +15,7 @@
     try {
       const res = await fetch(`${import.meta.env.VITE_APP_API_URL}/api/folders/${id}`, {method: 'DELETE'});
       if (!res.ok) throw new Error(await res.text());
-      if (onDelete) onDelete(id);
+      if (canDelete) onDelete(id);
     } catch (e) {
       if (e instanceof Error) {
         errorMsg = e.message;
@@ -30,14 +29,7 @@
   }
 </script>
 
-<!--<button type="button"-->
-<!--        tabindex="0"-->
-<!--        class="material-symbols-outlined cursor-pointer ml-1 bg-transparent border-0 p-0 focus:outline-none dropdown-toggle"-->
-<!--        aria-label="Aktionen"-->
-<!--        data-toggle="dropdown"-->
-<!--        on:click|stopPropagation={() => showActions = !showActions}>-->
-<!--    more_vert-->
-<!--</button>-->
+
 <div class="dropdown dropdown-hover dropdown-end">
     <button aria-label="Aktionen"
             class="btn btn-ghost material-symbols-outlined cursor-pointer ml-1 bg-transparent border-0 p-0 focus:outline-none"
@@ -47,7 +39,6 @@
     >
         more_vert
     </button>
-    <!--{#if showActions}-->
     <ul
             class="dropdown-content menu p-2 shadow bg-base-200 rounded-box w-52"
             id={"popover-" + folderId}
@@ -63,7 +54,6 @@
                 {/if}
             </li>
     </ul>
-    <!--{/if}-->
 </div>
 {#if showConfirm}
     <div class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">

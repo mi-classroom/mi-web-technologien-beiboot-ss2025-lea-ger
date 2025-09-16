@@ -127,11 +127,11 @@
 
         <div class="text-sm divide-y">
             <div class="py-4">
-                <label class="block mb-1 text-sm font-semibold text-gray-700">
+                <label class="block mb-1 text-sm font-semibold text-primary-content">
                     Wichtige Tags befüllt: {relevantFilled} / {relevantTotal}
                 </label>
                 <progress class="progress progress-primary w-full" value={relevantFilled} max={relevantTotal}></progress>
-                <div class="text-xs text-right text-gray-500">{relevantPercent}%</div>
+                <div class="text-xs text-right text-primary-content">{relevantPercent}%</div>
             </div>
 
             <TagSelector

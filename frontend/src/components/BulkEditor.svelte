@@ -4,12 +4,14 @@
   import TagSelector from "@/components/TagSelector.svelte";
   import MetadataField from "@/components/MetadataField.svelte";
   import Toast from "@/components/Toast.svelte";
+  import { saveMacro, type MergeStategy } from "@/macros.ts";
 
   export let onClose: () => void;
   export let onUpdated: () => void;
   export let selected: FileItem[];
 
-  let tags: { value: string, tag: IPTCTag }[] = [];
+  type TagEntry = { value: any, tag: IPTCTag, strategy: MergeStategy };
+  let tags: TagEntry[] = [];
   let saving = false;
   let toastOpen = false;
   let toastMsg = '';
@@ -18,6 +20,8 @@
   let progressTotal = 0;
 
   async function saveChanges() {
+    // Note: Merge-Strategien werden primär für Makros verwendet.
+    // Der direkte Speichern-Button überschreibt immer die Werte (aktuelles Verhalten).
     saving = true;
     progressCurrent = 0;
     progressTotal = selected.length;
@@ -66,7 +70,7 @@
         console.error(`Tag "${tag}" nicht gefunden.`);
         return;
       }
-      tags = [...tags, { value: '', tag: tagObj }];
+      tags = [...tags, { value: '', tag: tagObj, strategy: 'overwrite' }];
     } else {
       console.warn(`Tag "${tag}" ist bereits ausgewählt.`);
     }
@@ -78,8 +82,29 @@
     );
   }
 
+  function setStrategy(tagName: string, strategy: MergeStategy) {
+    tags = tags.map(t => t.tag.name === tagName ? { ...t, strategy } : t);
+  }
+
+  function handleStrategyChange(tagName: string) {
+    return (e: Event) => {
+      const val = (e.target as HTMLSelectElement).value as MergeStategy;
+      setStrategy(tagName, val);
+    };
+  }
+
   function closeEditor() {
     onClose();
+  }
+
+  function saveAsMacro() {
+    if (tags.length === 0) return;
+    const name = window.prompt('Makro-Name eingeben:');
+    if (!name) return;
+    saveMacro({ name, changes: tags.map(t => ({ tag: t.tag.name, value: t.value, strategy: t.strategy }))});
+    toastType = 'success';
+    toastMsg = 'Makro gespeichert';
+    toastOpen = true;
   }
 </script>
 
@@ -93,6 +118,7 @@
             <div class="flex flex-wrap items-center justify-between gap-1">
                 <h3 class="font-bold text-lg">Metadaten bearbeiten</h3>
                 <div class="flex items-center justify-end gap-4 mt-6">
+                    <button class="btn btn-secondary" on:click={saveAsMacro} disabled={tags.length === 0}>Als Makro speichern</button>
                     <button class="btn btn-primary"
                             disabled={tags.length === 0 || saving}
                             class:loading={saving}
@@ -108,24 +134,38 @@
               </div>
             {/if}
             <div class="space-y-2 my-4">
-                {#each tags as {tag, value} ( tag.name )}
-                    <MetadataField
-                            keyName={tag.name}
-                            value={value}
-                            originalValue={undefined}
-                            tag={tag}
-                            onEdit={editTag}
-                            onRemove={(k) => {
-                                tags = tags.filter(t => t.tag.name !== k);
-                            }}
-                    />
+                {#each tags as t ( t.tag.name )}
+                  <div class="flex items-center gap-3">
+                    <div class="flex-1">
+                      <MetadataField
+                        keyName={t.tag.name}
+                        value={t.value}
+                        originalValue={undefined}
+                        tag={t.tag}
+                        onEdit={editTag}
+                        onRemove={(k) => {
+                          tags = tags.filter(x => x.tag.name !== k);
+                        }}
+                      />
+                    </div>
+                    <div class="text-sm">
+                      <label class="block text-xs mb-1">Merging-Strategie</label>
+                      <select class="select select-bordered w-full" value={t.strategy} on:change={handleStrategyChange(t.tag.name)}>
+                        <option value="overwrite">Immer überschreiben</option>
+                        <option value="skipIfFilled">Überspringen, wenn befüllt</option>
+                      </select>
+                      <div class="text-sm opacity-60 mt-1">Nutze $$, um den aktuellen Feldwert einzufügen.</div>
+                    </div>
+                  </div>
                 {/each}
             </div>
 
-            <TagSelector
-                    label="Tag hinzufügen"
-                    onSelect={addTag}
-            />
+            <div class="flex items-center gap-3">
+              <TagSelector
+                      label="Tag hinzufügen"
+                      onSelect={addTag}
+              />
+            </div>
         </div>
     </div>
 </div>
