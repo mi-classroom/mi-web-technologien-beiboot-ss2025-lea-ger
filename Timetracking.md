@@ -22,10 +22,10 @@
 
 ## Task 5
 - [] Design the actual interaction concept in Figma
-- [] Fully implement IPTC editing functionality
-  - [] Autocompletion
-  - [] Progress/Completion bar
-- [] Fully implement bulk editing functionality
+- [x] Fully implement IPTC editing functionality | 5 hrs
+  - [x] Autocompletion (Dynamic field types?) | 4 hrs
+  - [x] Progress/Completion bar | 1 hr
+- [x] Fully implement bulk editing functionality | 2 hrs
 - [] Implement macro functionality
 
 ## Task 6
